@@ -803,14 +803,13 @@ Slice может принимать значения:
 Создание обработчика, который будет обогащать тултип своими секциями:
 
 ```java
-TooltipHandler.instance().addEnricher(String id, ITooltipEnricher enricher)
+TooltipHandler.addEnricher(String id, ITooltipEnricher enricher)
 ```
 
 ### 7.10. Вызов тултипа в другом моде
 
 ```java
-TooltipHandler.instance().drawHoveringText(ItemStack stack, int x, int y)
-TooltipHandler.instance().drawHoveringText(List<?> textLines, int x, int y)
-TooltipHandler.instance().drawHoveringText(ItemStack stack, List<?> textLines, int x, int y)
-TooltipHandler.instance().drawHoveringText(String context, ItemStack stack, List<?> textLines, int x, int y)
+TooltipHandler.drawHoveringText(List<?> textLines)
+TooltipHandler.drawHoveringText(ItemStack stack, List<?> textLines)
+TooltipHandler.drawHoveringText(TooltipRequest request)
 ```

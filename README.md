@@ -799,14 +799,13 @@ Rendered for tooltips when tooltip content doesn't fit on screen.
 Creating a handler that will enrich the tooltip with its own sections:
 
 ```java
-TooltipHandler.instance().addEnricher(String id, ITooltipEnricher enricher)
+TooltipHandler.addEnricher(String id, ITooltipEnricher enricher)
 ```
 
 ### 7.10. Tooltip calls in other mods
 
 ```java
-TooltipHandler.instance().drawHoveringText(ItemStack stack, int x, int y)
-TooltipHandler.instance().drawHoveringText(List<?> textLines, int x, int y)
-TooltipHandler.instance().drawHoveringText(ItemStack stack, List<?> textLines, int x, int y)
-TooltipHandler.instance().drawHoveringText(String context, ItemStack stack, List<?> textLines, int x, int y)
+TooltipHandler.drawHoveringText(List<?> textLines)
+TooltipHandler.drawHoveringText(ItemStack stack, List<?> textLines)
+TooltipHandler.drawHoveringText(TooltipRequest request)
 ```
