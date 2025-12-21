@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 
 public class TooltipTransform {
@@ -33,6 +34,37 @@ public class TooltipTransform {
         }
     }
 
+    protected enum Origin {
+
+        START(0.0),
+        CENTER(0.5),
+        END(1.0);
+
+        protected final double value;
+
+        Origin(double value) {
+            this.value = value;
+        }
+
+        public static Origin fromString(String str) {
+            switch (str.toLowerCase()) {
+                case "start":
+                case "left":
+                case "top":
+                    return START;
+                case "center":
+                    return CENTER;
+                case "end":
+                case "right":
+                case "bottom":
+                    return END;
+                default:
+                    return START;
+            }
+        }
+
+    }
+
     protected static final Map<String, Function<Float, Float>> TIMING_FUNCTIONS = new HashMap<>();
 
     static {
@@ -49,6 +81,8 @@ public class TooltipTransform {
     protected Function<Float, Float> timingFunction;
     protected boolean pingPong = false;
     protected List<Keyframe> keyframes = new ArrayList<>();
+    protected Origin originInline = Origin.CENTER;
+    protected Origin originBlock = Origin.CENTER;
 
     public TooltipTransform(TooltipStyle transformStyle) {
         this.delay = transformStyle.getAsFloat("delay", 0);
@@ -72,44 +106,49 @@ public class TooltipTransform {
             }
         }
 
+        this.originInline = Origin.fromString(
+            transformStyle.getAsString("originInline", transformStyle.getAsString("origin.inline", "center")));
+        this.originBlock = Origin.fromString(
+            transformStyle.getAsString("originBlock", transformStyle.getAsString("origin.block", "center")));
+
         if (this.keyframes.isEmpty() || this.keyframes.get(this.keyframes.size() - 1).progress != 100) {
             this.keyframes.add(Keyframe.LAST_KEYFRAME);
         }
     }
 
     public boolean isAnimated() {
-        return this.keyframes.size() > 1;
+        return Config.transformEnabled && this.keyframes.size() > 1;
     }
 
     public void pushTransformMatrix(double x, double y, double width, double height, long lastFrameTime) {
-        GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_ENABLE_BIT);
         GL11.glPushMatrix();
 
         final Keyframe frame = getCurrentKeyframe(lastFrameTime);
-        final double halfWidth = width / 2d;
-        final double halfHeight = height / 2d;
+        final double originX = width * this.originInline.value;
+        final double originY = height * this.originBlock.value;
 
+        // 1. Base translation (position + animation translate)
+        GL11.glTranslated(x + frame.translateX, y + frame.translateY, 0d);
+
+        // 2. Move to transform-origin
+        GL11.glTranslated(originX, originY, 0);
+
+        // 3. Scale
         if (frame.scale != 1f) {
-            GL11.glTranslated(
-                x + frame.translateX + halfWidth - halfWidth * frame.scale,
-                y + frame.translateY + halfHeight - halfHeight * frame.scale,
-                0d);
             GL11.glScalef(frame.scale, frame.scale, 1f);
-        } else {
-            GL11.glTranslated(x + frame.translateX, y + frame.translateY, 0d);
         }
 
-        if (frame.rotate > 0f) {
-            GL11.glTranslated(halfWidth / frame.scale, halfHeight / frame.scale, 0);
+        // 4. Rotate
+        if (frame.rotate != 0f) {
             GL11.glRotated(frame.rotate, 0, 0, 1);
-            GL11.glTranslated(-halfWidth / frame.scale, -halfHeight / frame.scale, 0);
         }
 
+        // 5. Move back from transform-origin
+        GL11.glTranslated(-originX, -originY, 0);
     }
 
     public void popTransformMatrix() {
         GL11.glPopMatrix();
-        GL11.glPopAttrib();
     }
 
     public Keyframe getCurrentKeyframe(long lastFrameTime) {

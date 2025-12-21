@@ -1,17 +1,17 @@
 package com.slprime.chromatictooltips.event;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipLines;
 
 public class ItemInfoEnricherEvent extends TooltipEvent {
 
-    public List<Object> lines;
+    public final TooltipLines tooltip;
 
     public ItemInfoEnricherEvent(TooltipContext context, List<?> lines) {
         super(context);
-        this.lines = new ArrayList<>(lines);
+        this.tooltip = new TooltipLines(lines);
     }
 
 }

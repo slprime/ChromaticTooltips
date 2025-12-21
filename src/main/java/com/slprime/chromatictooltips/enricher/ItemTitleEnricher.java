@@ -30,7 +30,7 @@ public class ItemTitleEnricher implements ITooltipEnricher {
         }
 
         @Override
-        public ITooltipComponent[] paginate(int maxWidth, int maxHeight) {
+        public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
             return new ITooltipComponent[] { this };
         }
 

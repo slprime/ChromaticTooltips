@@ -6,13 +6,19 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
+    public static boolean transformEnabled = true;
+
     public static boolean hotkeysEnricherEnabled = true;
     public static boolean hotkeysHelpTextEnabled = true;
+    public static boolean oreDictionaryEnricherEnabled = true;
     public static boolean stackSizeEnricherEnabled = true;
     public static boolean playerInventoryStackSizeEnabled = true;
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);
+
+        transformEnabled = configuration
+            .getBoolean("enabled", "transform", transformEnabled, "Enable or disable tooltip transformations.");
 
         hotkeysEnricherEnabled = configuration.getBoolean(
             "enabled",
@@ -24,6 +30,12 @@ public class Config {
             "enricher.hotkeys",
             hotkeysHelpTextEnabled,
             "Show help text for hotkeys in inventory tooltips.");
+
+        oreDictionaryEnricherEnabled = configuration.getBoolean(
+            "enabled",
+            "enricher.oreDictionary",
+            oreDictionaryEnricherEnabled,
+            "Enable or disable the ore dictionary tooltip enricher.");
 
         stackSizeEnricherEnabled = configuration.getBoolean(
             "enabled",

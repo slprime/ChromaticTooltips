@@ -8,22 +8,22 @@ import com.slprime.chromatictooltips.util.TooltipSpacing;
 
 public class RenderTooltipEvent extends TooltipEvent {
 
-    public final SectionTooltipComponent activePage;
+    public final SectionTooltipComponent page;
     public final int x;
     public final int y;
     public final int width;
     public final int height;
 
-    public RenderTooltipEvent(TooltipContext context, SectionTooltipComponent activePage, Point position) {
+    public RenderTooltipEvent(TooltipContext context, SectionTooltipComponent page, Point position) {
         super(context);
-        this.activePage = activePage;
+        this.page = page;
 
-        final TooltipSpacing margin = activePage.getMargin();
+        final TooltipSpacing margin = page.getMargin();
 
         this.x = position.x + margin.getLeft();
         this.y = position.y + margin.getTop();
-        this.width = activePage.getWidth() - margin.getInline();
-        this.height = activePage.getHeight() - margin.getBlock();
+        this.width = page.getWidth() - margin.getInline();
+        this.height = page.getHeight() - margin.getBlock();
     }
 
 }

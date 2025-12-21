@@ -82,8 +82,8 @@ A tooltip style for items with rare rarity:
             "duration": 300,
             "function": "easeOut",
             "keyframes": [
-            { "progress": 0, "scale": 0.8 },
-            { "progress": 100, "scale": 1.0 }
+              { "progress": 0, "scale": 0.8 },
+              { "progress": 100, "scale": 1.0 }
             ]
         }
     }
@@ -659,6 +659,8 @@ Creates sequence: `0,1,2,3,2,1`
 {
   "duration": 600,
   "function": "easeInOut",
+  "originInline": "center",
+  "originBlock": "center",
   "keyframes": [
     { "progress": 0, "scale": 0.9 },
     { "progress": 100, "scale": 1.0 }
@@ -785,16 +787,7 @@ Applies to tooltips that belong to an item. You can use all styles that `Section
 
 ### 7.7. modInfo
 
-Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts, as well as a couple of custom ones.
-
-```json
-{
-    "compact": false,
-    "modnameColor": "0xffAA00AA",
-    "delimiterColor": "0xffAA00AA",
-    "identifierColor": "0xff808080"
-}
-```
+Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts.
 
 ### 7.8. navigation
 

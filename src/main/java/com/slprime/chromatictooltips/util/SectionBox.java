@@ -27,10 +27,6 @@ public class SectionBox implements ITooltipComponent {
 
         if (style.containsKey("transform")) {
             this.transform = new TooltipTransform(style.getAsStyle("transform"));
-
-            if (!this.transform.isAnimated()) {
-                this.transform = null;
-            }
         }
 
         this.alignInline = TooltipAlign
@@ -106,7 +102,7 @@ public class SectionBox implements ITooltipComponent {
         int width = Math.max(getWidth(), availableWidth);
         int height = getHeight();
 
-        if (this.transform != null) {
+        if (this.transform != null && this.transform.isAnimated()) {
             this.transform.pushTransformMatrix(x, y, width, height, context.getLastFrameTime());
             x = y = 0;
         }
@@ -117,7 +113,7 @@ public class SectionBox implements ITooltipComponent {
         height -= this.margin.getBlock();
 
         if (this.decorators != null) {
-            this.decorators.draw(x, y, width, height, context);
+            this.decorators.draw(x, y, width, height, context, 0xffffffff);
         }
 
         x += this.padding.getLeft();
@@ -145,7 +141,7 @@ public class SectionBox implements ITooltipComponent {
         drawContent(x, y, width, height, context);
         this.fontContext.popContext();
 
-        if (this.transform != null) {
+        if (this.transform != null && this.transform.isAnimated()) {
             this.transform.popTransformMatrix();
         }
     }

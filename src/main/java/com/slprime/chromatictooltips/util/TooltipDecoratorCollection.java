@@ -14,9 +14,9 @@ public class TooltipDecoratorCollection {
         return this.decorators.length == 0;
     }
 
-    public void draw(int x, int y, int width, int height, TooltipContext context) {
+    public void draw(int x, int y, int width, int height, TooltipContext context, int mixColor) {
         for (TooltipDecorator decorator : this.decorators) {
-            decorator.draw(x, y, width, height, context);
+            decorator.draw(x, y, width, height, context, mixColor);
         }
     }
 }

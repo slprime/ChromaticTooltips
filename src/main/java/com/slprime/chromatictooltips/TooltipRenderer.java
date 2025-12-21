@@ -80,17 +80,23 @@ public class TooltipRenderer implements ITooltipRenderer {
 
     protected Predicate<ItemStack> filter;
     protected TooltipStyle tooltipStyle;
-    protected ITooltipComponent hrSpacing = null;
-    protected ITooltipComponent sectionSpacing = null;
-    protected ITooltipComponent paragraphSpacing = null;
+    protected Map<String, SpaceTooltipComponent> spacing = new HashMap<>();
 
     public TooltipRenderer(TooltipStyle style) {
         this.filter = ItemStackFilterParser.parse(style.getAsString("filter", ""));
-        this.hrSpacing = createSpaceComponent(style.get("spacing.hr"), 4);
-        this.sectionSpacing = createSpaceComponent(style.get("spacing.section"), 4);
-        this.paragraphSpacing = createSpaceComponent(style.get("spacing.paragraph"), 4);
         this.tooltipSectionBox = new TooltipSectionBox(style);
         this.tooltipStyle = style;
+
+        for (Map.Entry<String, JsonElement> entry : style.getAsJsonObject("spacing", new JsonObject())
+            .entrySet()) {
+            this.spacing.put(entry.getKey(), createSpaceComponent(entry.getValue(), 4));
+        }
+
+        for (String spacingKey : new String[] { "hr", "section", "paragraph" }) {
+            if (!this.spacing.containsKey(spacingKey)) {
+                this.spacing.put(spacingKey, new SpaceTooltipComponent(4));
+            }
+        }
 
         final int[] offset = style.getAsProperty(
             "offset",
@@ -134,8 +140,8 @@ public class TooltipRenderer implements ITooltipRenderer {
     }
 
     @Override
-    public ITooltipComponent getParagraphSpacing() {
-        return this.paragraphSpacing;
+    public SpaceTooltipComponent getSpacing(String key) {
+        return this.spacing.computeIfAbsent(key, k -> new SpaceTooltipComponent(4));
     }
 
     @Override
@@ -168,11 +174,11 @@ public class TooltipRenderer implements ITooltipRenderer {
         result.add(components.get(0));
 
         if (components.size() > 1) {
-            result.add(this.hrSpacing);
+            result.add(this.getSpacing("hr"));
             result.add(components.get(1));
 
             for (int i = 2; i < components.size(); i++) {
-                result.add(this.sectionSpacing);
+                result.add(this.getSpacing("section"));
                 result.add(components.get(i));
             }
         }
@@ -187,7 +193,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         maxHeight = Math.max(maxHeight, this.tooltipSectionBox.getMinHeight());
 
         final List<SectionTooltipComponent> pages = new ArrayList<>();
-        ITooltipComponent[] split = component.paginate(maxWidth, maxHeight);
+        ITooltipComponent[] split = component.paginate(this.lastContext, maxWidth, maxHeight);
         final SectionTooltipComponent firstPage = (SectionTooltipComponent) split[0];
         final int paginationHeight = this.tooltipSectionBox.getNavigationHeight();
 
@@ -196,7 +202,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         while (component != null) {
-            split = component.paginate(maxWidth, maxHeight - paginationHeight);
+            split = component.paginate(this.lastContext, maxWidth, maxHeight - paginationHeight);
             pages.add((SectionTooltipComponent) split[0]);
 
             if (split.length > 1) {

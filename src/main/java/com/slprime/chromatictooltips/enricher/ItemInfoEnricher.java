@@ -6,7 +6,6 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 
-import com.slprime.chromatictooltips.TooltipHandler;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
@@ -27,7 +26,7 @@ public class ItemInfoEnricher implements ITooltipEnricher {
         final ItemInfoEnricherEvent event = new ItemInfoEnricherEvent(context, namelist);
         ClientUtil.postEvent(event);
 
-        return TooltipHandler.convertList(event.lines);
+        return event.tooltip.buildComponents(context);
     }
 
     protected List<String> itemInformation(ItemStack stack) {

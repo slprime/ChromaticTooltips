@@ -82,8 +82,8 @@ Chromatic Tooltips позволяет:
             "duration": 300,
             "function": "easeOut",
             "keyframes": [
-            { "progress": 0, "scale": 0.8 },
-            { "progress": 100, "scale": 1.0 }
+              { "progress": 0, "scale": 0.8 },
+              { "progress": 100, "scale": 1.0 }
             ]
         }
     }
@@ -662,6 +662,8 @@ Slice может принимать значения:
 {
   "duration": 600,
   "function": "easeInOut",
+  "originInline": "center",
+  "originBlock": "center",
   "keyframes": [
     { "progress": 0, "scale": 0.9 },
     { "progress": 100, "scale": 1.0 }
@@ -788,16 +790,8 @@ Slice может принимать значения:
 
 ### 7.7. modInfo
 
-Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`, а также пару собственных.
+Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`.
 
-```json
-{
-    "compact": false,
-    "modnameColor": "0xffAA00AA",
-    "delimiterColor": "0xffAA00AA",
-    "identifierColor": "0xff808080"
-}
-```
 
 ### 7.8. navigation
 

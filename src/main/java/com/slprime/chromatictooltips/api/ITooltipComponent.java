@@ -8,7 +8,7 @@ public interface ITooltipComponent {
 
     public int getSpacing();
 
-    default ITooltipComponent[] paginate(int maxWidth, int maxHeight) {
+    default ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
         return new ITooltipComponent[] { this };
     }
 

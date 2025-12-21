@@ -1,5 +1,6 @@
 package com.slprime.chromatictooltips.api;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,15 +26,20 @@ public class TooltipContext {
 
     public TooltipContext(String context, ITooltipRenderer renderer, ItemStack stack) {
         this.renderer = renderer;
-        this.stack = stack;
+        this.stack = stack != null ? stack.copy() : null;
         this.context = context;
         this.lastFrameTime = System.currentTimeMillis();
     }
 
-    public void setPosition(int mouseX, int mouseY) {
-        this.mouseX = mouseX;
-        this.mouseY = mouseY;
-        setAnchorBounds(mouseX, mouseY, 0, 0);
+    public void setStack(ItemStack stack) {
+        this.stack = stack != null ? stack.copy() : null;
+        this.revision++;
+    }
+
+    public void setPosition(Point mouse) {
+        this.mouseX = mouse.x;
+        this.mouseY = mouse.y;
+        setAnchorBounds(mouse.x, mouse.y, 0, 0);
     }
 
     public String getContextName() {
@@ -87,7 +93,7 @@ public class TooltipContext {
 
     public void addSectionComponent(int index, String sectionId, List<ITooltipComponent> components) {
         if (components == null || components.isEmpty()) return;
-        index = Math.min(index, this.lines.size());
+        index = Math.max(0, Math.min(index, this.lines.size()));
         this.lines
             .add(index, new SectionTooltipComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
         this.revision++;

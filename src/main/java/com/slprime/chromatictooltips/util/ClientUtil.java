@@ -1,5 +1,6 @@
 package com.slprime.chromatictooltips.util;
 
+import java.awt.Point;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -11,6 +12,7 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -18,6 +20,7 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import com.slprime.chromatictooltips.ChromaticTooltips;
 
@@ -97,6 +100,14 @@ public class ClientUtil {
 
     public static RenderItem getItemRenderer() {
         return gui.getItemRenderer();
+    }
+
+    public static Point getMousePosition() {
+        final Minecraft mc = mc();
+        final ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        return new Point(
+            Mouse.getX() * res.getScaledWidth() / mc.displayWidth,
+            res.getScaledHeight() - Mouse.getY() * res.getScaledHeight() / mc.displayHeight - 1);
     }
 
     public static boolean altKey() {

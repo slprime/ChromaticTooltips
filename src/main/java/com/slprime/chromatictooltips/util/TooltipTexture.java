@@ -490,12 +490,13 @@ public class TooltipTexture {
 
     }
 
-    public void draw(double x, double y, double width, double height, TooltipAlign alignInline,
-        TooltipAlign alignBlock) {
-        boolean hasBlend = GL11.glGetBoolean(GL11.GL_BLEND);
+    public void draw(double x, double y, double width, double height, TooltipAlign alignInline, TooltipAlign alignBlock,
+        int mixColor) {
+        final boolean hasBlend = GL11.glGetBoolean(GL11.GL_BLEND);
+        final int color = this.color == TooltipDecorator.TRANSPARENT ? mixColor : this.color;
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(this.color >> 16 & 255, this.color >> 8 & 255, this.color & 255, this.color >> 24 & 255);
+        GL11.glColor4f(color >> 16 & 255, color >> 8 & 255, color & 255, color >> 24 & 255);
         ClientUtil.mc()
             .getTextureManager()
             .bindTexture(this.resourceLocation);

@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 
 import net.minecraft.item.ItemStack;
 
+import com.slprime.chromatictooltips.component.SpaceTooltipComponent;
 import com.slprime.chromatictooltips.util.SectionBox;
 
 public interface ITooltipRenderer {
@@ -20,7 +21,7 @@ public interface ITooltipRenderer {
 
     public boolean previousTooltipPage();
 
-    public ITooltipComponent getParagraphSpacing();
+    public SpaceTooltipComponent getSpacing(String key);
 
     public Rectangle getTooltipBounds(TooltipContext context);
 

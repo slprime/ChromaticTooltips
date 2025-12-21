@@ -1,0 +1,3 @@
+# Tooltip Lines Blacklist
+# r/<str>/ - regexp
+# <str> - contains

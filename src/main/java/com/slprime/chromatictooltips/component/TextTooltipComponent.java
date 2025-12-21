@@ -49,7 +49,7 @@ public class TextTooltipComponent implements ITooltipComponent {
     }
 
     @Override
-    public ITooltipComponent[] paginate(int maxWidth, int maxHeight) {
+    public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
         final int linesPerPage = Math
             .max(1, maxHeight / (TooltipFontContext.getFontRenderer().FONT_HEIGHT + LINE_SPACE));
         final List<String> lines = new ArrayList<>();

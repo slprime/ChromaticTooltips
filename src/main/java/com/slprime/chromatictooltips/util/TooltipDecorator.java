@@ -45,7 +45,8 @@ public class TooltipDecorator {
         }
     }
 
-    protected static final int TRANSPARENT = 0x00000000;
+    public static final int TRANSPARENT = 0x00000000;
+    public static final int WHITE = 0xFFFFFFFF;
 
     protected TooltipTexture texture = null;
     protected TooltipTransform transform = null;
@@ -124,7 +125,7 @@ public class TooltipDecorator {
         }
     }
 
-    public void draw(double x, double y, int w, int h, TooltipContext context) {
+    public void draw(double x, double y, int w, int h, TooltipContext context, int mixColor) {
         x += this.margin.left;
         y += this.margin.top;
         w -= this.margin.left + this.margin.right;
@@ -154,13 +155,13 @@ public class TooltipDecorator {
             y += (h - height) / 2d;
         }
 
-        if (this.transform != null) {
+        if (this.transform != null && this.transform.isAnimated()) {
             this.transform.pushTransformMatrix(x, y, width, height, context.getLastFrameTime());
             x = y = 0;
         }
 
         if (this.texture != null) {
-            this.texture.draw(x, y, width, height, this.alignInline, this.alignBlock);
+            this.texture.draw(x, y, width, height, this.alignInline, this.alignBlock, mixColor);
         } else if (this.decoratorType == DecoratorType.ITEM) {
             final ItemStack stack = context.getStack();
 
@@ -168,10 +169,10 @@ public class TooltipDecorator {
                 drawItemStack(x, y, width, height, stack);
             }
         } else if (this.decoratorType != DecoratorType.NONE) {
-            drawGradient(x, y, width, height);
+            drawGradient(x, y, width, height, mixColor);
         }
 
-        if (this.transform != null) {
+        if (this.transform != null && this.transform.isAnimated()) {
             this.transform.popTransformMatrix();
         }
     }
@@ -206,12 +207,12 @@ public class TooltipDecorator {
         GL11.glPopAttrib();
     }
 
-    protected void drawGradient(double x, double y, double width, double height) {
+    protected void drawGradient(double x, double y, double width, double height, int mixColor) {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        GL11.glColor4f(1, 1, 1, 1);
         GL11.glShadeModel(GL11.GL_SMOOTH);
 
         if (this.decoratorType == DecoratorType.HORIZONTAL) {
@@ -223,10 +224,10 @@ public class TooltipDecorator {
                     y,
                     x + segmentWidth,
                     y + height,
-                    this.colors[i],
-                    this.colors[i],
-                    this.colors[i + 1],
-                    this.colors[i + 1]);
+                    blend(this.colors[i], mixColor),
+                    blend(this.colors[i], mixColor),
+                    blend(this.colors[i + 1], mixColor),
+                    blend(this.colors[i + 1], mixColor));
                 x += segmentWidth;
             }
 
@@ -239,10 +240,10 @@ public class TooltipDecorator {
                     y,
                     x + width,
                     y + segmentHeight,
-                    this.colors[i],
-                    this.colors[i + 1],
-                    this.colors[i],
-                    this.colors[i + 1]);
+                    blend(this.colors[i], mixColor),
+                    blend(this.colors[i + 1], mixColor),
+                    blend(this.colors[i], mixColor),
+                    blend(this.colors[i + 1], mixColor));
                 y += segmentHeight;
             }
         } else if (this.decoratorType == DecoratorType.BACKGROUND) {
@@ -253,17 +254,17 @@ public class TooltipDecorator {
                 y + offset,
                 x + width - offset,
                 y + height - offset,
-                this.colors[0],
-                this.colors[1],
-                this.colors[3],
-                this.colors[2]);
+                blend(this.colors[0], mixColor),
+                blend(this.colors[1], mixColor),
+                blend(this.colors[3], mixColor),
+                blend(this.colors[2], mixColor));
 
             if (!this.corner) {
-                drawBorder(x, y, width, height, this.thickness);
+                drawBorder(x, y, width, height, this.thickness, mixColor);
             }
 
         } else if (this.decoratorType == DecoratorType.BORDER) {
-            drawBorder(x, y, width, height, this.corner ? 0 : this.thickness);
+            drawBorder(x, y, width, height, this.corner ? 0 : this.thickness, mixColor);
         }
 
         GL11.glShadeModel(GL11.GL_FLAT);
@@ -272,47 +273,47 @@ public class TooltipDecorator {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
-    protected void drawBorder(double x, double y, double width, double height, int offset) {
+    protected void drawBorder(double x, double y, double width, double height, int offset, int mixColor) {
         // Top
         drawGradientRect(
             x + offset,
             y,
             x + width - offset,
             y + this.thickness,
-            this.colors[0],
-            this.colors[0],
-            this.colors[1],
-            this.colors[1]);
+            blend(this.colors[0], mixColor),
+            blend(this.colors[0], mixColor),
+            blend(this.colors[1], mixColor),
+            blend(this.colors[1], mixColor));
         // Bottom
         drawGradientRect(
             x + offset,
             y + height - this.thickness,
             x + width - offset,
             y + height,
-            this.colors[3],
-            this.colors[3],
-            this.colors[2],
-            this.colors[2]);
+            blend(this.colors[3], mixColor),
+            blend(this.colors[3], mixColor),
+            blend(this.colors[2], mixColor),
+            blend(this.colors[2], mixColor));
         // Left
         drawGradientRect(
             x,
             y + this.thickness,
             x + this.thickness,
             y + height - this.thickness,
-            this.colors[0],
-            this.colors[3],
-            this.colors[0],
-            this.colors[3]);
+            blend(this.colors[0], mixColor),
+            blend(this.colors[3], mixColor),
+            blend(this.colors[0], mixColor),
+            blend(this.colors[3], mixColor));
         // Right
         drawGradientRect(
             x + width - this.thickness,
             y + this.thickness,
             x + width,
             y + height - this.thickness,
-            this.colors[1],
-            this.colors[2],
-            this.colors[1],
-            this.colors[2]);
+            blend(this.colors[1], mixColor),
+            blend(this.colors[2], mixColor),
+            blend(this.colors[1], mixColor),
+            blend(this.colors[2], mixColor));
     }
 
     protected void drawGradientRect(double left, double top, double right, double bottom, int lt, int lb, int rt,
@@ -329,6 +330,24 @@ public class TooltipDecorator {
         tess.setColorRGBA_I(rt, rt >> 24 & 255);
         tess.addVertex(right, top, 0);
         tess.draw();
+    }
+
+    public static int blend(int dst, int src) {
+
+        int tr = (dst >>> 16) & 0xFF;
+        int tg = (dst >>> 8) & 0xFF;
+        int tb = dst & 0xFF;
+        int ta = (dst >>> 24) & 0xFF;
+
+        int cr = (src >>> 16) & 0xFF;
+        int cg = (src >>> 8) & 0xFF;
+        int cb = src & 0xFF;
+
+        int r = tr * cr / 255;
+        int g = tg * cg / 255;
+        int b = tb * cb / 255;
+
+        return (ta << 24) | (r << 16) | (g << 8) | b;
     }
 
 }

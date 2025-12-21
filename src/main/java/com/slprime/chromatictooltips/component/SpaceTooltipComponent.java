@@ -36,8 +36,15 @@ public class SpaceTooltipComponent implements ITooltipComponent {
     @Override
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
         if (this.decorators != null) {
-            this.decorators.draw(x, y, availableWidth, this.height, context);
+            this.decorators.draw(x, y, availableWidth, this.height, context, 0xffffffff);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SpaceTooltipComponent{height=" + this.height
+            + (this.decorators != null ? ", decorators=" + this.decorators : "")
+            + "}";
     }
 
 }

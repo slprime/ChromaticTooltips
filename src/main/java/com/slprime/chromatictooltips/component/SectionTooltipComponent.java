@@ -84,7 +84,7 @@ public class SectionTooltipComponent extends SectionBox {
     }
 
     @Override
-    public ITooltipComponent[] paginate(int maxWidth, int maxHeight) {
+    public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
         final List<ITooltipComponent> firstPage = new ArrayList<>();
         final List<ITooltipComponent> secondPage = new ArrayList<>();
         boolean firstPageIsEmpty = true;
@@ -97,7 +97,7 @@ public class SectionTooltipComponent extends SectionBox {
             final int remainingHeight = maxHeight - currentHeight - lastMarginBottom;
 
             if (firstPageIsEmpty || remainingHeight > 0) {
-                final ITooltipComponent[] split = component.paginate(maxWidth, remainingHeight);
+                final ITooltipComponent[] split = component.paginate(context, maxWidth, remainingHeight);
                 final ITooltipComponent firstComponent = split[0];
                 final int compHeight = firstComponent.getHeight();
 

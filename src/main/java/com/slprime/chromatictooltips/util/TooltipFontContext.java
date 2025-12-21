@@ -14,26 +14,38 @@ public class TooltipFontContext {
     protected static class Context {
 
         public int defaultColor = INHERIT_COLOR;
+        public int[] colors = new int[32];
         public boolean shadow = true;
 
-        public Context(int defaultColor, boolean shadow) {
+        public Context(int defaultColor, int[] colors, boolean shadow) {
+            this.colors = Arrays.copyOf(TooltipFontContext.getFontRenderer().colorCode, 32);
             this.defaultColor = defaultColor;
             this.shadow = shadow;
+
+            for (int i = 0; i < colors.length; i++) {
+                if (colors[i] != INHERIT_COLOR) {
+                    this.colors[i] = colors[i];
+                }
+            }
+
+        }
+
+        public void applyColors() {
+            System.arraycopy(this.colors, 0, TooltipFontContext.getFontRenderer().colorCode, 0, 32);
         }
     }
 
     public static final int INHERIT_COLOR = 0x00000000;
 
-    protected static int[] previousColors = null;
     protected static FontRenderer fontRenderer = null;
-    protected static Context staticContext = new Context(0xffffffff, true);
     protected static final String[] colorOrders = new String[] { "black", "dark_blue", "dark_green", "dark_aqua",
         "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple",
         "yellow", "white" };
 
     protected Context previousContext = null;
-    protected int[] customColors = new int[32];
+    protected static Context activeContext = null;
 
+    protected int[] customColors = new int[32];
     protected int defaultColor = INHERIT_COLOR;
     protected Boolean shadow = null;
 
@@ -83,30 +95,37 @@ public class TooltipFontContext {
     }
 
     public void pushContext() {
-        this.previousContext = TooltipFontContext.staticContext;
 
-        TooltipFontContext.staticContext = new Context(
-            this.defaultColor == INHERIT_COLOR ? TooltipFontContext.staticContext.defaultColor : this.defaultColor,
-            this.shadow == null ? TooltipFontContext.staticContext.shadow : this.shadow);
-
-        if (previousColors == null) {
-            previousColors = Arrays.copyOf(getFontRenderer().colorCode, 32);
+        if (TooltipFontContext.activeContext == null) {
+            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
         }
 
-        for (int i = 0; i < 32; i++) {
-            if (this.customColors[i] != INHERIT_COLOR) {
-                getFontRenderer().colorCode[i] = this.customColors[i];
-            }
-        }
+        this.previousContext = TooltipFontContext.activeContext;
+
+        TooltipFontContext.activeContext = new Context(
+            this.defaultColor == INHERIT_COLOR ? TooltipFontContext.activeContext.defaultColor : this.defaultColor,
+            this.customColors,
+            this.shadow == null ? TooltipFontContext.activeContext.shadow : this.shadow);
+
+        TooltipFontContext.activeContext.applyColors();
     }
 
     public void popContext() {
+        TooltipFontContext.activeContext = this.previousContext;
+        TooltipFontContext.activeContext.applyColors();
+    }
 
-        if (previousColors != null) {
-            System.arraycopy(previousColors, 0, getFontRenderer().colorCode, 0, 32);
+    public static int getColor(int index) {
+
+        if (TooltipFontContext.activeContext == null) {
+            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
         }
 
-        TooltipFontContext.staticContext = this.previousContext;
+        if (index < 0 || index >= 32) {
+            return TooltipFontContext.activeContext.defaultColor;
+        }
+
+        return TooltipFontContext.activeContext.colors[index];
     }
 
     public static FontRenderer getFontRenderer() {
@@ -127,16 +146,20 @@ public class TooltipFontContext {
     }
 
     public static void drawString(String text, int x, int y) {
-        drawString(text, x, y, TooltipFontContext.staticContext.defaultColor);
+        drawString(text, x, y, TooltipFontContext.activeContext.defaultColor);
     }
 
     public static void drawString(String text, int x, int y, int color) {
 
-        if (color == TooltipFontContext.INHERIT_COLOR) {
-            color = TooltipFontContext.staticContext.defaultColor;
+        if (TooltipFontContext.activeContext == null) {
+            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
         }
 
-        getFontRenderer().drawString(text, x, y, color, TooltipFontContext.staticContext.shadow);
+        if (color == TooltipFontContext.INHERIT_COLOR) {
+            color = TooltipFontContext.activeContext.defaultColor;
+        }
+
+        getFontRenderer().drawString(text, x, y, color, TooltipFontContext.activeContext.shadow);
     }
 
 }

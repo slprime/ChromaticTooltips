@@ -12,6 +12,7 @@ chromatictooltips.enricher.stacksize.item=Count: %s
 chromatictooltips.enricher.stacksize.fluid=Amount: %s
 
 chromatictooltips.enricher.hotkeys.message=Hold %s for hotkeys
+chromatictooltips.enricher.oreDictionary.message=Ore Dictionary Names:
 
 nei.options.inventory.hotkeysHelpText=Show Hotkeys Help Text
 nei.options.inventory.hotkeysHelpText.true=Yes
