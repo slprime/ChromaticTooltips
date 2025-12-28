@@ -16,6 +16,7 @@ public class SectionBox implements ITooltipComponent {
     protected TooltipAlign alignInline = TooltipAlign.START;
     protected TooltipAlign alignBlock = TooltipAlign.END;
     protected Dimension contentSize = new Dimension(0, 0);
+    protected int spacing = 0;
     protected int minWidth;
     protected int minHeight;
 
@@ -36,6 +37,7 @@ public class SectionBox implements ITooltipComponent {
 
         this.minWidth = style.getAsInt("minWidth", 0);
         this.minHeight = style.getAsInt("minHeight", 0);
+        this.spacing = style.getAsInt("spacing", 0);
     }
 
     public SectionBox(SectionBox copy) {
@@ -48,6 +50,7 @@ public class SectionBox implements ITooltipComponent {
         this.alignBlock = copy.alignBlock;
         this.minWidth = copy.minWidth;
         this.minHeight = copy.minHeight;
+        this.spacing = copy.spacing;
     }
 
     public void setContentSize(int width, int height) {
@@ -94,7 +97,7 @@ public class SectionBox implements ITooltipComponent {
 
     @Override
     public int getSpacing() {
-        return 0;
+        return this.spacing;
     }
 
     @Override
@@ -103,7 +106,7 @@ public class SectionBox implements ITooltipComponent {
         int height = getHeight();
 
         if (this.transform != null && this.transform.isAnimated()) {
-            this.transform.pushTransformMatrix(x, y, width, height, context.getLastFrameTime());
+            this.transform.pushTransformMatrix(x, y, width, height, context.getAnimationStartTime());
             x = y = 0;
         }
 
@@ -113,7 +116,7 @@ public class SectionBox implements ITooltipComponent {
         height -= this.margin.getBlock();
 
         if (this.decorators != null) {
-            this.decorators.draw(x, y, width, height, context, 0xffffffff);
+            this.decorators.draw(x, y, width, height, context, 0xFFFFFFFF);
         }
 
         x += this.padding.getLeft();

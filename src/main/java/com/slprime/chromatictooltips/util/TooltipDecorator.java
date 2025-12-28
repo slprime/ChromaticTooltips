@@ -156,7 +156,7 @@ public class TooltipDecorator {
         }
 
         if (this.transform != null && this.transform.isAnimated()) {
-            this.transform.pushTransformMatrix(x, y, width, height, context.getLastFrameTime());
+            this.transform.pushTransformMatrix(x, y, width, height, context.getAnimationStartTime());
             x = y = 0;
         }
 
@@ -274,46 +274,49 @@ public class TooltipDecorator {
     }
 
     protected void drawBorder(double x, double y, double width, double height, int offset, int mixColor) {
+        final int[] colors = new int[] { blend(this.colors[0], mixColor), blend(this.colors[1], mixColor),
+            blend(this.colors[2], mixColor), blend(this.colors[3], mixColor) };
+
         // Top
         drawGradientRect(
             x + offset,
             y,
             x + width - offset,
             y + this.thickness,
-            blend(this.colors[0], mixColor),
-            blend(this.colors[0], mixColor),
-            blend(this.colors[1], mixColor),
-            blend(this.colors[1], mixColor));
+            colors[0],
+            colors[0],
+            colors[1],
+            colors[1]);
         // Bottom
         drawGradientRect(
             x + offset,
             y + height - this.thickness,
             x + width - offset,
             y + height,
-            blend(this.colors[3], mixColor),
-            blend(this.colors[3], mixColor),
-            blend(this.colors[2], mixColor),
-            blend(this.colors[2], mixColor));
+            colors[3],
+            colors[3],
+            colors[2],
+            colors[2]);
         // Left
         drawGradientRect(
             x,
             y + this.thickness,
             x + this.thickness,
             y + height - this.thickness,
-            blend(this.colors[0], mixColor),
-            blend(this.colors[3], mixColor),
-            blend(this.colors[0], mixColor),
-            blend(this.colors[3], mixColor));
+            colors[0],
+            colors[3],
+            colors[0],
+            colors[3]);
         // Right
         drawGradientRect(
             x + width - this.thickness,
             y + this.thickness,
             x + width,
             y + height - this.thickness,
-            blend(this.colors[1], mixColor),
-            blend(this.colors[2], mixColor),
-            blend(this.colors[1], mixColor),
-            blend(this.colors[2], mixColor));
+            colors[1],
+            colors[2],
+            colors[1],
+            colors[2]);
     }
 
     protected void drawGradientRect(double left, double top, double right, double bottom, int lt, int lb, int rt,

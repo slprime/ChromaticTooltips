@@ -1,11 +1,11 @@
 package com.slprime.chromatictooltips.enricher;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
@@ -22,11 +22,25 @@ public class ModInfoEnricher implements ITooltipEnricher {
 
     protected static final String DEFAULT_MOD_NAME = "Minecraft";
     protected static final UniqueIdentifier UNKNOWN_IDENTIFIER = new UniqueIdentifier("Unknown:unknown");
-
     protected static volatile Map<String, ModContainer> namedMods = null;
 
     @Override
-    public List<ITooltipComponent> enrich(TooltipContext context) {
+    public String sectionId() {
+        return "modInfo";
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.FOOTER;
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.ALWAYS);
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null) {
@@ -43,12 +57,12 @@ public class ModInfoEnricher implements ITooltipEnricher {
 
             components.add(
                 new TextTooltipComponent(
-                    EnumChatFormatting.DARK_PURPLE + (modnameEqualsModId ? modname : identifier.modId)
-                        + EnumChatFormatting.DARK_GRAY
-                        + ":"
-                        + identifier.name));
+                    ClientUtil.translate(
+                        "enricher.modinfo.identifier",
+                        modnameEqualsModId ? modname : identifier.modId,
+                        identifier.name)));
         } else {
-            components.add(new TextTooltipComponent(EnumChatFormatting.DARK_PURPLE + modname));
+            components.add(new TextTooltipComponent(ClientUtil.translate("enricher.modinfo.modname", modname)));
         }
 
         return components;

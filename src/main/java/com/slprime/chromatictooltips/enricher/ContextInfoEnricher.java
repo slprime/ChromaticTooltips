@@ -1,6 +1,7 @@
 package com.slprime.chromatictooltips.enricher;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -10,14 +11,14 @@ import net.minecraft.item.ItemStack;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.event.ItemInfoEnricherEvent;
+import com.slprime.chromatictooltips.component.TextTooltipComponent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
-public class ItemInfoEnricher implements ITooltipEnricher {
+public class ContextInfoEnricher implements ITooltipEnricher {
 
     @Override
     public String sectionId() {
-        return "itemInfo";
+        return "contextInfo";
     }
 
     @Override
@@ -27,34 +28,30 @@ public class ItemInfoEnricher implements ITooltipEnricher {
 
     @Override
     public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.DEFAULT, EnricherMode.SHIFT);
+        return EnumSet.of(EnricherMode.DEFAULT);
     }
 
     @Override
     public List<ITooltipComponent> build(TooltipContext context) {
-        final ItemStack stack = context.getStack();
+        final List<ITooltipComponent> lines = new ArrayList<>(context.getContextTooltip());
 
-        if (stack == null) {
-            return null;
+        if (context.getStack() == null && !lines.isEmpty() && lines.get(0) instanceof TextTooltipComponent) {
+            lines.remove(0);
         }
 
-        final List<String> namelist = itemInformation(stack);
-        final ItemInfoEnricherEvent event = new ItemInfoEnricherEvent(context, namelist);
-        ClientUtil.postEvent(event);
-
-        return event.tooltip.buildComponents(context);
+        return lines;
     }
 
     protected List<String> itemInformation(ItemStack stack) {
         final Minecraft mc = ClientUtil.mc();
-        List<String> namelist = new ArrayList<>();
 
         try {
-            namelist = stack.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
+            final List<String> namelist = stack.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
             namelist.remove(0);
+            return namelist;
         } catch (Throwable ignored) {}
 
-        return namelist;
+        return Collections.emptyList();
     }
 
 }

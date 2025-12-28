@@ -4,15 +4,22 @@ key.chromatictooltips.previous_page=Previous Page
 
 chromatictooltips.key.alt=ALT
 
-chromatictooltips.navigation.page=Page: %s / %s [Press %s for next, %s for prev]
-chromatictooltips.navigation.page.next_only=Page: %s / %s [Press %s for next]
-chromatictooltips.navigation.page.previous_only=Page: %s / %s [Press %s for prev]
+chromatictooltips.navigation.page=§8Page: %s / %s [Press %s for next, %s for prev]
+chromatictooltips.navigation.page.next_only=§8Page: %s / %s [Press %s for next]
+chromatictooltips.navigation.page.previous_only=§8Page: %s / %s [Press %s for prev]
 
-chromatictooltips.enricher.stacksize.item=Count: %s
-chromatictooltips.enricher.stacksize.fluid=Amount: %s
+chromatictooltips.enricher.stacksize.item=§7Count: %s
+chromatictooltips.enricher.stacksize.fluid=§7Amount: %s
 
-chromatictooltips.enricher.hotkeys.message=Hold %s for hotkeys
-chromatictooltips.enricher.oreDictionary.message=Ore Dictionary Names:
+chromatictooltips.enricher.modinfo.modname=§5%s
+chromatictooltips.enricher.modinfo.identifier=§5%s:§8%s
+
+chromatictooltips.enricher.hotkeys.helpText=§7Hold §6%s§7 for hotkeys
+chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 - §7%s
+chromatictooltips.enricher.hotkeys.keybind.keys=§7 / §6
+
+chromatictooltips.enricher.oreDictionary.title=§7Ore Dictionary Names:
+chromatictooltips.enricher.oreDictionary.entry=§8 - §e%s
 
 nei.options.inventory.hotkeysHelpText=Show Hotkeys Help Text
 nei.options.inventory.hotkeysHelpText.true=Yes

@@ -1,10 +1,10 @@
 package com.slprime.chromatictooltips.enricher;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.slprime.chromatictooltips.Config;
@@ -19,14 +19,29 @@ public class OreDictionaryEnricher implements ITooltipEnricher {
     protected String titleComponent;
 
     public OreDictionaryEnricher() {
-        this.titleComponent = EnumChatFormatting.GRAY + ClientUtil.translate("enricher.oreDictionary.message");
+        this.titleComponent = ClientUtil.translate("enricher.oreDictionary.title");
     }
 
     @Override
-    public List<ITooltipComponent> enrich(TooltipContext context) {
+    public String sectionId() {
+        return "oreDictionary";
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.BODY;
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.CTRL);
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !Config.oreDictionaryEnricherEnabled || !ClientUtil.shiftKey()) {
+        if (stack == null || !Config.oreDictionaryEnricherEnabled) {
             return null;
         }
 
@@ -35,9 +50,7 @@ public class OreDictionaryEnricher implements ITooltipEnricher {
         for (int oredict : OreDictionary.getOreIDs(stack)) {
             components.add(
                 new TextTooltipComponent(
-                    EnumChatFormatting.DARK_GRAY + "  - "
-                        + EnumChatFormatting.YELLOW
-                        + OreDictionary.getOreName(oredict)));
+                    ClientUtil.translate("enricher.oreDictionary.entry", OreDictionary.getOreName(oredict))));
         }
 
         if (!components.isEmpty()) {

@@ -9,12 +9,14 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
+import com.slprime.chromatictooltips.enricher.AmountEnricher;
+import com.slprime.chromatictooltips.enricher.ContextInfoEnricher;
 import com.slprime.chromatictooltips.enricher.HotkeyEnricher;
+import com.slprime.chromatictooltips.enricher.HotkeyHelpTextEnricher;
 import com.slprime.chromatictooltips.enricher.ItemInfoEnricher;
-import com.slprime.chromatictooltips.enricher.ItemTitleEnricher;
 import com.slprime.chromatictooltips.enricher.ModInfoEnricher;
 import com.slprime.chromatictooltips.enricher.OreDictionaryEnricher;
-import com.slprime.chromatictooltips.enricher.StackSizeEnricher;
+import com.slprime.chromatictooltips.enricher.TitleEnricher;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -49,12 +51,15 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         ClientRegistry.registerKeyBinding(nextPage);
         ClientRegistry.registerKeyBinding(previousPage);
 
-        TooltipHandler.addEnricher("itemTitle", new ItemTitleEnricher());
-        TooltipHandler.addEnricher("stackSize", new StackSizeEnricher());
-        TooltipHandler.addEnricher("hotkeys", new HotkeyEnricher());
-        TooltipHandler.addEnricher("oreDictionary", new OreDictionaryEnricher());
-        TooltipHandler.addEnricher("itemInfo", new ItemInfoEnricher());
-        TooltipHandler.addEnricher("modInfo", new ModInfoEnricher());
+        TooltipHandler.addEnricher(new TitleEnricher());
+        TooltipHandler.addEnricher(new AmountEnricher());
+        TooltipHandler.addEnricher(new HotkeyHelpTextEnricher());
+        TooltipHandler.addEnricher(new HotkeyEnricher());
+        TooltipHandler.addEnricher(new OreDictionaryEnricher());
+        TooltipHandler.addEnricher(new ItemInfoEnricher());
+        TooltipHandler.addEnricher(new ContextInfoEnricher());
+        TooltipHandler.addEnricher(new ModInfoEnricher());
+
         TooltipHandler.setRendererClass(TooltipRenderer.class);
     }
 

@@ -10,20 +10,18 @@ import com.slprime.chromatictooltips.util.TooltipFontContext;
 
 public class TextTooltipComponent implements ITooltipComponent {
 
-    public static final int LINE_SPACE = 1;
-    public static final int DEFAULT_SPACING = 2;
+    protected static final int LINE_SPACE = 1;
+    protected static final int DEFAULT_SPACING = 2;
 
     protected List<String> textLines = null;
-    protected int color = TooltipFontContext.INHERIT_COLOR;
     protected int spacing = 2;
 
     protected int width = 0;
     protected int height = 0;
 
-    public TextTooltipComponent(List<String> textLines, int color, int spacing) {
+    public TextTooltipComponent(List<String> textLines, int spacing) {
         this.textLines = textLines;
         this.spacing = spacing;
-        this.color = color;
 
         for (String line : textLines) {
             this.width = Math.max(this.width, TooltipFontContext.getStringWidth(line));
@@ -33,19 +31,19 @@ public class TextTooltipComponent implements ITooltipComponent {
     }
 
     public TextTooltipComponent(List<String> textLines) {
-        this(textLines, TooltipFontContext.INHERIT_COLOR, DEFAULT_SPACING);
+        this(textLines, DEFAULT_SPACING);
     }
 
-    public TextTooltipComponent(String text, int color) {
-        this(Arrays.asList(text), color, DEFAULT_SPACING);
-    }
-
-    public TextTooltipComponent(String text, int color, int spacing) {
-        this(Arrays.asList(text), color, spacing);
+    public TextTooltipComponent(String text, int spacing) {
+        this(Arrays.asList(text), spacing);
     }
 
     public TextTooltipComponent(String text) {
-        this(Arrays.asList(text), TooltipFontContext.INHERIT_COLOR, DEFAULT_SPACING);
+        this(Arrays.asList(text), DEFAULT_SPACING);
+    }
+
+    public List<String> getLines() {
+        return new ArrayList<>(this.textLines);
     }
 
     @Override
@@ -71,7 +69,7 @@ public class TextTooltipComponent implements ITooltipComponent {
     }
 
     protected ITooltipComponent createInstance(List<String> lines) {
-        return new TextTooltipComponent(lines, color, spacing);
+        return new TextTooltipComponent(lines, spacing);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class TextTooltipComponent implements ITooltipComponent {
         final int lineHeight = TooltipFontContext.getFontRenderer().FONT_HEIGHT + LINE_SPACE;
 
         for (String line : this.textLines) {
-            context.drawString(line, x, y, this.color);
+            context.drawString(line, x, y);
             y += lineHeight;
         }
 

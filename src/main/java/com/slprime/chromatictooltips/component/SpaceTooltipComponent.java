@@ -2,20 +2,35 @@ package com.slprime.chromatictooltips.component;
 
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.util.TooltipDecoratorCollection;
+import com.slprime.chromatictooltips.util.TooltipTransform;
 
 public class SpaceTooltipComponent implements ITooltipComponent {
 
     protected TooltipDecoratorCollection decorators;
+    protected TooltipTransform transform;
+    protected int mixColor = 0xFFFFFFFF;
     protected int height;
 
-    public SpaceTooltipComponent(int height) {
-        this(height, null);
+    public SpaceTooltipComponent(TooltipStyle style) {
+        this.decorators = style.getDecoratorCollection();
+        this.height = style.getAsInt("height", 0);
+
+        if (style.containsKey("transform")) {
+            this.transform = new TooltipTransform(style.getAsStyle("transform"));
+        }
     }
 
-    public SpaceTooltipComponent(int height, TooltipDecoratorCollection decorators) {
+    public SpaceTooltipComponent(int height) {
         this.height = height;
-        this.decorators = decorators;
+    }
+
+    public SpaceTooltipComponent(SpaceTooltipComponent space) {
+        this.height = space.height;
+        this.decorators = space.decorators;
+        this.transform = space.transform;
+        this.mixColor = space.mixColor;
     }
 
     @Override
@@ -36,7 +51,18 @@ public class SpaceTooltipComponent implements ITooltipComponent {
     @Override
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
         if (this.decorators != null) {
-            this.decorators.draw(x, y, availableWidth, this.height, context, 0xffffffff);
+
+            if (this.transform != null && this.transform.isAnimated()) {
+                this.transform.pushTransformMatrix(x, y, availableWidth, this.height, context.getAnimationStartTime());
+                x = y = 0;
+            }
+
+            this.decorators.draw(x, y, availableWidth, this.height, context, this.mixColor);
+
+            if (this.transform != null && this.transform.isAnimated()) {
+                this.transform.popTransformMatrix();
+            }
+
         }
     }
 

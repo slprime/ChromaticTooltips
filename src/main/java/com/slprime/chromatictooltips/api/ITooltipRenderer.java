@@ -15,13 +15,13 @@ public interface ITooltipRenderer {
 
     public SectionBox getSectionBox(String path);
 
+    public SpaceTooltipComponent getSpacing(String path);
+
     public boolean matches(ItemStack stack);
 
     public boolean nextTooltipPage();
 
     public boolean previousTooltipPage();
-
-    public SpaceTooltipComponent getSpacing(String key);
 
     public Rectangle getTooltipBounds(TooltipContext context);
 

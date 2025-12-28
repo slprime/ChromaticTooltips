@@ -82,6 +82,23 @@ public class TooltipStyle {
         return getAs(path, defaultValue, el -> el.getAsString());
     }
 
+    public String[] getAsStringArray(String path, String[] defaultValue) {
+        final JsonElement element = get(path);
+
+        if (element != null && element.isJsonArray()) {
+            final JsonArray array = element.getAsJsonArray();
+            final String[] values = new String[array.size()];
+
+            for (int i = 0; i < array.size(); i++) {
+                values[i] = getAs(array.get(i), "", el -> el.getAsString());
+            }
+
+            return values;
+        }
+
+        return defaultValue;
+    }
+
     public double getAsDouble(String path, double defaultValue) {
         return getAs(path, defaultValue, el -> el.getAsDouble());
     }

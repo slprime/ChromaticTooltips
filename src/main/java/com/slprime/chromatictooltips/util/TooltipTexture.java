@@ -66,8 +66,6 @@ public class TooltipTexture {
     private final int textureWidth;
     private final int textureHeight;
 
-    protected int color = 0xFFFFFFFF;
-
     protected Animation animation;
 
     protected double[][] screenTexCoords = null;
@@ -82,9 +80,8 @@ public class TooltipTexture {
     protected Repeat repeatBlock;
 
     public TooltipTexture(TooltipStyle style) {
-        String path = style.getAsString("path", "textures/tooltip.png");
+        final String path = style.getAsString("path", "textures/tooltip.png");
         this.resourceLocation = new ResourceLocation(path.contains(":") ? path : "chromatictooltips:" + path);
-        this.color = style.getAsColor("color", 0xFFFFFFFF);
 
         ClientUtil.mc()
             .getTextureManager()
@@ -493,10 +490,9 @@ public class TooltipTexture {
     public void draw(double x, double y, double width, double height, TooltipAlign alignInline, TooltipAlign alignBlock,
         int mixColor) {
         final boolean hasBlend = GL11.glGetBoolean(GL11.GL_BLEND);
-        final int color = this.color == TooltipDecorator.TRANSPARENT ? mixColor : this.color;
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(color >> 16 & 255, color >> 8 & 255, color & 255, color >> 24 & 255);
+        GL11.glColor4f(mixColor >> 16 & 255, mixColor >> 8 & 255, mixColor & 255, mixColor >> 24 & 255);
         ClientUtil.mc()
             .getTextureManager()
             .bindTexture(this.resourceLocation);

@@ -19,7 +19,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
@@ -65,9 +64,10 @@ public class TooltipRenderer implements ITooltipRenderer {
     }
 
     protected Map<String, SectionBox> sectionBoxCache = new HashMap<>();
+    protected Map<String, SpaceTooltipComponent> spacingCache = new HashMap<>();
 
     protected int mainAxisOffset = 6;
-    protected int crossAxisOffset = -16;
+    protected int crossAxisOffset = -18;
     protected TooltipSectionBox tooltipSectionBox;
 
     protected TooltipContext lastContext = null;
@@ -80,22 +80,14 @@ public class TooltipRenderer implements ITooltipRenderer {
 
     protected Predicate<ItemStack> filter;
     protected TooltipStyle tooltipStyle;
-    protected Map<String, SpaceTooltipComponent> spacing = new HashMap<>();
 
     public TooltipRenderer(TooltipStyle style) {
         this.filter = ItemStackFilterParser.parse(style.getAsString("filter", ""));
         this.tooltipSectionBox = new TooltipSectionBox(style);
         this.tooltipStyle = style;
 
-        for (Map.Entry<String, JsonElement> entry : style.getAsJsonObject("spacing", new JsonObject())
-            .entrySet()) {
-            this.spacing.put(entry.getKey(), createSpaceComponent(entry.getValue(), 4));
-        }
-
-        for (String spacingKey : new String[] { "hr", "section", "paragraph" }) {
-            if (!this.spacing.containsKey(spacingKey)) {
-                this.spacing.put(spacingKey, new SpaceTooltipComponent(4));
-            }
+        if (!style.containsKey("divider")) {
+            this.spacingCache.put("divider", new SpaceTooltipComponent(new TooltipStyle(createDefaultDivider())));
         }
 
         final int[] offset = style.getAsProperty(
@@ -107,22 +99,17 @@ public class TooltipRenderer implements ITooltipRenderer {
         this.crossAxisOffset = offset[1];
     }
 
-    protected SpaceTooltipComponent createSpaceComponent(JsonElement style, int defaultSpace) {
+    protected JsonObject createDefaultDivider() {
+        final JsonObject dividerStyle = new JsonObject();
+        final JsonObject decorator = new JsonObject();
+        decorator.addProperty("type", "background");
+        decorator.addProperty("color", "0xFFFFFFFF");
+        decorator.addProperty("alignBlock", "center");
+        decorator.addProperty("height", 1);
+        dividerStyle.add("decorator", decorator);
+        dividerStyle.addProperty("height", 10);
 
-        if (style instanceof JsonObject styleObject) {
-            final TooltipStyle spaceStyle = new TooltipStyle(styleObject);
-            return new SpaceTooltipComponent(
-                spaceStyle.getAsInt("height", defaultSpace),
-                spaceStyle.getDecoratorCollection());
-        } else if (style != null && style.isJsonPrimitive()
-            && style.getAsJsonPrimitive()
-                .isNumber()) {
-                    return new SpaceTooltipComponent(
-                        style.getAsJsonPrimitive()
-                            .getAsInt());
-                }
-
-        return new SpaceTooltipComponent(defaultSpace);
+        return dividerStyle;
     }
 
     @Override
@@ -135,13 +122,14 @@ public class TooltipRenderer implements ITooltipRenderer {
         return this.tooltipStyle;
     }
 
+    @Override
     public SectionBox getSectionBox(String path) {
         return this.sectionBoxCache.computeIfAbsent(path, p -> new SectionBox(this.tooltipStyle.getAsStyle(p)));
     }
 
     @Override
-    public SpaceTooltipComponent getSpacing(String key) {
-        return this.spacing.computeIfAbsent(key, k -> new SpaceTooltipComponent(4));
+    public SpaceTooltipComponent getSpacing(String path) {
+        return this.spacingCache.computeIfAbsent(path, p -> new SpaceTooltipComponent(this.tooltipStyle.getAsStyle(p)));
     }
 
     @Override
@@ -169,18 +157,10 @@ public class TooltipRenderer implements ITooltipRenderer {
     }
 
     protected List<ITooltipComponent> prepareComponents(List<SectionTooltipComponent> components) {
-        final List<ITooltipComponent> result = new ArrayList<>();
+        final List<ITooltipComponent> result = new ArrayList<>(components);
 
-        result.add(components.get(0));
-
-        if (components.size() > 1) {
-            result.add(this.getSpacing("hr"));
-            result.add(components.get(1));
-
-            for (int i = 2; i < components.size(); i++) {
-                result.add(this.getSpacing("section"));
-                result.add(components.get(i));
-            }
+        if (result.size() > 1 && getSpacing("hr").getHeight() > 0) {
+            result.add(1, getSpacing("hr"));
         }
 
         return result;
@@ -278,7 +258,7 @@ public class TooltipRenderer implements ITooltipRenderer {
             final int maxWidth = freeSpace.width - this.tooltipSectionBox.getInline();
             final int maxHeight = freeSpace.height - this.tooltipSectionBox.getBlock();
 
-            final List<ITooltipComponent> components = prepareComponents(this.lastContext.getComponents());
+            final List<ITooltipComponent> components = prepareComponents(this.lastContext.getSections());
 
             final List<SectionTooltipComponent> pages = paginateComponents(
                 new SectionTooltipComponent("page", this.tooltipSectionBox, components),

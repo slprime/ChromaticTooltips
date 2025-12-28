@@ -11,6 +11,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import com.slprime.chromatictooltips.TooltipHandler;
 import com.slprime.chromatictooltips.component.DividerTooltipComponent;
+import com.slprime.chromatictooltips.component.ParagraphTooltipComponent;
 import com.slprime.chromatictooltips.component.SpaceTooltipComponent;
 import com.slprime.chromatictooltips.component.TextTooltipComponent;
 import com.slprime.chromatictooltips.event.TextLinesConverterEvent;
@@ -21,7 +22,11 @@ import com.slprime.chromatictooltips.util.TooltipFontContext;
 public class TooltipLines {
 
     protected static final Pattern DIVIDER_PATTERN = Pattern
-        .compile("^(?:§[0-9a-fk-or])*§([0-9a-f])(?:§[0-9a-fk-or])*§m-+$", Pattern.CASE_INSENSITIVE);
+        .compile("^(\\s*)(?:§[0-9a-fk-or])*§([0-9a-f])(?:§[0-9a-fk-or])*-{3,}(?:§r)?$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern COLOR_CODES_PATTERN = Pattern.compile("^\\s*§[0-9A-F]", Pattern.CASE_INSENSITIVE);
+    protected static final String BASE_CODE = EnumChatFormatting.GRAY.toString();
+    protected static final int DEFAULT_SPACING = 4;
+    protected static final String HEADER_SUFFIX = "§h";
 
     private final List<Object> textLines = new ArrayList<>();
 
@@ -32,8 +37,8 @@ public class TooltipLines {
     }
 
     public TooltipLines header(String line) {
-        return line(
-            new TextTooltipComponent(line, TooltipFontContext.INHERIT_COLOR, TextTooltipComponent.DEFAULT_SPACING));
+        this.textLines.add(line + HEADER_SUFFIX);
+        return this;
     }
 
     public TooltipLines line(ITooltipComponent line) {
@@ -80,33 +85,33 @@ public class TooltipLines {
             if (line instanceof ITooltipComponent component) {
                 results.add(component);
             } else if ("".equals(line)) {
-                results.add(renderer.getSpacing("paragraph"));
+                results.add(new ParagraphTooltipComponent());
             } else if (line instanceof String str
                 && !BlacklistLines.test(EnumChatFormatting.getTextWithoutFormattingCodes(str))) {
-                    str = str.startsWith("§7") ? str.substring(2)
-                        .replaceAll("§7", "§r") : str; // Remove default gray color code
                     final Matcher matcher = DIVIDER_PATTERN.matcher(str);
 
                     if (matcher.matches()) {
-                        final String colorCode = matcher.group(1);
+                        final String colorCode = matcher.group(2);
                         final int colorCodeIndex = "0123456789abcdef".indexOf(colorCode.toLowerCase());
+                        final int marginLeft = TooltipFontContext.getStringWidth(matcher.group(1));
 
-                        results.add(new DividerTooltipComponent(renderer.getSpacing("divider"), colorCodeIndex));
-                    } else if (str.endsWith("§h")) {
+                        results.add(
+                            new DividerTooltipComponent(renderer.getSpacing("divider"), marginLeft, colorCodeIndex));
+                    } else if (str.endsWith(HEADER_SUFFIX)) {
                         results.add(
                             new TextTooltipComponent(
-                                str.substring(0, str.length() - 2),
-                                TooltipFontContext.INHERIT_COLOR,
-                                TextTooltipComponent.DEFAULT_SPACING));
+                                prepareTextBaseColor(str.substring(0, str.length() - HEADER_SUFFIX.length())),
+                                DEFAULT_SPACING));
                     } else {
                         ITooltipComponent component = TooltipHandler.getTooltipComponent(str);
 
                         if (component == null) {
-                            component = new TextTooltipComponent(str);
+                            component = new TextTooltipComponent(prepareTextBaseColor(str));
                         }
 
                         results.add(component);
                     }
+
                 }
 
         }
@@ -120,6 +125,16 @@ public class TooltipLines {
         }
 
         return results;
+    }
+
+    public static String prepareTextBaseColor(String str) {
+
+        if (!TooltipLines.COLOR_CODES_PATTERN.matcher(str)
+            .find()) {
+            return TooltipLines.BASE_CODE + str;
+        }
+
+        return str;
     }
 
     public boolean isEmpty() {

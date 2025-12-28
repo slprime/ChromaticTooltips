@@ -1,14 +1,12 @@
 package com.slprime.chromatictooltips.enricher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import net.minecraft.util.EnumChatFormatting;
 
 import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
@@ -20,48 +18,31 @@ import com.slprime.chromatictooltips.util.ClientUtil;
 
 public class HotkeyEnricher implements ITooltipEnricher {
 
-    protected String moreText;
-
-    public HotkeyEnricher() {
-        this.moreText = EnumChatFormatting.GRAY + ClientUtil.translate(
-            "enricher.hotkeys.message",
-            EnumChatFormatting.GOLD + ClientUtil.translate("key.alt") + EnumChatFormatting.GRAY);
+    @Override
+    public String sectionId() {
+        return "hotkeys";
     }
 
     @Override
-    public List<ITooltipComponent> enrich(TooltipContext context) {
+    public EnricherPlace place() {
+        return EnricherPlace.BODY;
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.ALT);
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
 
         if (!Config.hotkeysEnricherEnabled) {
             return null;
         }
 
-        ITooltipComponent component = null;
+        final ITooltipComponent component = hotkeysListComponent(context);
 
-        if (ClientUtil.altKey()) {
-            component = hotkeysListComponent(context);
-        } else if (Config.hotkeysHelpTextEnabled) {
-            component = getHotkeysHelpText(context);
-        }
-
-        if (component != null) {
-            return Arrays.asList(component);
-        }
-
-        return null;
-    }
-
-    protected TextTooltipComponent getHotkeysHelpText(TooltipContext context) {
-        final HotkeyEnricherEvent event = new HotkeyEnricherEvent(context, new HashMap<>());
-        ClientUtil.postEvent(event);
-
-        event.hotkeys.remove(null);
-        event.hotkeys.remove("");
-
-        if (!event.hotkeys.isEmpty() && this.moreText != null) {
-            return new TextTooltipComponent(this.moreText);
-        }
-
-        return null;
+        return component == null ? null : Collections.singletonList(component);
     }
 
     protected TextTooltipComponent hotkeysListComponent(TooltipContext context) {
@@ -112,12 +93,10 @@ public class HotkeyEnricher implements ITooltipEnricher {
     }
 
     protected String getHotkeyTip(List<String> keys, String message) {
-        return EnumChatFormatting.GOLD
-            + String.join(EnumChatFormatting.DARK_GRAY + " / " + EnumChatFormatting.GOLD, keys)
-            + EnumChatFormatting.DARK_GRAY
-            + " - "
-            + EnumChatFormatting.GRAY
-            + message;
+        return ClientUtil.translate(
+            "enricher.hotkeys.keybind.entry",
+            String.join(ClientUtil.translate("enricher.hotkeys.keybind.keys"), keys),
+            message);
     }
 
 }

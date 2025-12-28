@@ -1,6 +1,7 @@
 package com.slprime.chromatictooltips.enricher;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -19,13 +20,28 @@ import com.slprime.chromatictooltips.component.TextTooltipComponent;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
-public class StackSizeEnricher implements ITooltipEnricher {
+public class AmountEnricher implements ITooltipEnricher {
 
     @Override
-    public List<ITooltipComponent> enrich(TooltipContext context) {
+    public String sectionId() {
+        return "amount";
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.BODY;
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.SHIFT);
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !Config.stackSizeEnricherEnabled || !ClientUtil.shiftKey()) {
+        if (stack == null || !Config.stackSizeEnricherEnabled) {
             return null;
         }
 

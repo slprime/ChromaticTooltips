@@ -1,6 +1,7 @@
 package com.slprime.chromatictooltips.enricher;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.minecraft.init.Items;
@@ -12,19 +13,18 @@ import net.minecraft.util.EnumChatFormatting;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.component.TextTooltipComponent;
 import com.slprime.chromatictooltips.event.ItemTitleEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
-public class ItemTitleEnricher implements ITooltipEnricher {
+public class TitleEnricher implements ITooltipEnricher {
 
     protected static class StackTitleTooltipComponent extends TextTooltipComponent {
 
         protected ITooltipComponent identifierComponent;
 
-        public StackTitleTooltipComponent(String title, int titleColor, ITooltipComponent identifierComponent) {
-            super(title + " ", titleColor);
+        public StackTitleTooltipComponent(String title, ITooltipComponent identifierComponent) {
+            super(title + " ");
             this.width += identifierComponent.getWidth();
             this.identifierComponent = identifierComponent;
         }
@@ -44,39 +44,55 @@ public class ItemTitleEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public List<ITooltipComponent> enrich(TooltipContext context) {
+    public String sectionId() {
+        return "title";
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.HEADER;
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.ALWAYS);
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null) {
+            final List<ITooltipComponent> lines = context.getContextTooltip();
+
+            if (!lines.isEmpty() && lines.get(0) instanceof TextTooltipComponent title) {
+                final String line = title.getLines()
+                    .get(0);
+                return Collections.singletonList(
+                    new TextTooltipComponent(EnumChatFormatting.WHITE + line.replaceAll("^(?:§[0-9a-fk-or])+", "")));
+            }
+
             return null;
+        } else {
+            return itemTitle(context, stack);
         }
 
-        final List<ITooltipComponent> components = new ArrayList<>();
-        final TooltipStyle style = context.getAsStyle("stackTitle");
+    }
+
+    protected List<ITooltipComponent> itemTitle(TooltipContext context, ItemStack stack) {
         final ITooltipComponent identifierComponent = new TextTooltipComponent(
-            getAdvancedInfo(stack),
-            style.getAsColor("identifierColor", 0xff555555));
+            EnumChatFormatting.DARK_GRAY + getAdvancedInfo(stack));
         final ItemTitleEnricherEvent event = new ItemTitleEnricherEvent(context, stack.getDisplayName());
 
         ClientUtil.postEvent(event);
 
-        components.add(
-            new StackTitleTooltipComponent(
-                prepareItemDisplayName(stack, event.displayName),
-                style.getAsColor("titleColor", 0xffffffff),
-                identifierComponent));
-
-        if (event.displaySubtitle != null && !event.displaySubtitle.isEmpty()) {
-            components
-                .add(new TextTooltipComponent(event.displaySubtitle, style.getAsColor("subtitleColor", 0xff555555)));
-        }
-
-        return components;
+        return Collections.singletonList(
+            new StackTitleTooltipComponent(prepareItemDisplayName(stack, event.displayName), identifierComponent));
     }
 
     private String prepareItemDisplayName(ItemStack stack, String displayName) {
-        final String rarityColor = stack.getRarity() != EnumRarity.common ? stack.getRarity().rarityColor.toString()
-            : "";
+        final String rarityColor = stack.getRarity() == EnumRarity.common ? ""
+            : stack.getRarity().rarityColor.toString();
 
         if (stack.hasDisplayName()) {
             return rarityColor + EnumChatFormatting.ITALIC + displayName;

@@ -46,12 +46,6 @@ Chromatic Tooltips позволяет:
         "offsetMain": 6,
         "offsetCross": -18,
 
-        "title": {
-            "defaultColor": "0xFFFFFFFF"
-        },
-
-        "defaultColor": "0x808080",
-
         "decorators": [{
             "type": "background",
             "color": "0xF0100010",
@@ -70,8 +64,6 @@ Chromatic Tooltips позволяет:
 
         "offsetMain": 6,
         "offsetCross": -18,
-
-        "defaultColor": "0xFFFFFFFF",
 
         "decorators": [
             { "type": "background", "color": "0x80000020" },
@@ -112,10 +104,18 @@ Chromatic Tooltips позволяет:
   "styles": [
     {
       "type": "item | default | <custom>",
-      "filter": { ... },
+      "filter": "...",
 
       "offsetMain": "<int>",
       "offsetCross": "<int>",
+
+      "sectionSpacing": "<int>",
+
+      "hr": {
+        "decorators": [ "<TooltipDecorator>" ],
+        "transform": "<TooltipTransform>",
+        "height" "<int>"
+      },
 
       "<SectionBox>"
     }
@@ -129,7 +129,7 @@ Chromatic Tooltips позволяет:
 {
     "style": {
         "type": "item | default | <custom>",
-        "filter": { ... },
+        "filter": "...",
 
         "offsetMain": "<int>",
         "offsetCross": "<int>",
@@ -214,8 +214,8 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
 
 ```json
 {
-  "defaultColor": "0xFFFFFFFF",
   "fontShadow": true,
+  "fontParagrath": "<int>",
   "fontColors": {
     "gold": ["0xFFFFD700", "0xFFB8860B"]
   }
@@ -227,8 +227,8 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
 ```json
 {
     "font": {
-        "defaultColor": "0xFFFFFFFF",
         "shadow": true,
+        "paragrath": "<int>",
         "colors": {
             "gold": ["0xFFFFD700", "0xFFB8860B"]
         }
@@ -240,8 +240,8 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
 
 | Поле | Тип | Описание | Алиас |
 |------|-----|----------|-------|
-| `defaultColor` | int, color | Цвет по умолчанию | — |
 | `fontShadow` | boolean | Тень на шрифте | `font.shadow` |
+| `fontParagrath` | int | Высота пустой строки | `font.paragrath` |
 | `fontColors` | объект | Кастомные цвета шрифтов | `font.colors` |
 
 ### fontColors / font.colors
@@ -402,7 +402,6 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
 ```json
 {
   "path": "<string>",           // путь к текстуре
-  "color": "<int | color>",     // цвет (ARGB), например 0xFFFFFFFF
   "region": {
     "x": "<int>",
     "y": "<int>",
@@ -455,7 +454,7 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
 }
 ```
 
-Код поддерживает 4 формата:
+Repeat поддерживает 4 формата:
 
 ### ✔ 1) Boolean
 ```json
@@ -565,10 +564,6 @@ Slice может принимать значения:
 ```
 
 > **Примечание:** Если slice пуст — используется fallback: `[ [ defaultSize, 1 ] ]`
-
-
-
-
 
 #### 5.4.4. Анимация (animation)
 
@@ -721,43 +716,79 @@ Slice может принимать значения:
 }
 ```
 
-## 7. Enrichers
+## 7. Основные секции тултипа
+
+В системе Chromatic Tooltips базовые секции определяют структуру и расположение информации внутри тултипа. Каждая секция может содержать различные компоненты и стили, а также быть расширена через Enrichers.
+
+### Список базовых секций:
+
+1. **header**
+  Верхняя часть тултипа. Обычно содержит название предмета или заголовок. Сюда добавляются компоненты типа `title`, а также любые дополнительные элементы, которые должны отображаться в начале тултипа.
+
+2. **body**
+  Основная часть тултипа. Здесь отображается подробная информация о предмете, его свойства, описание, количество, горячие клавиши, Ore Dictionary и другие секции, связанные с содержимым.
+
+3. **footer**
+  Нижняя часть тултипа. Используется для отображения информации о моде, который добавил предмет, а также других вспомогательных данных, которые должны быть в конце тултипа.
+
+4. **navigation**
+  Дополнительная секция для элементов навигации. Рисуется только если тултип не помезается на экран.
+
+Каждая секция настраивается через JSON-стили и может быть дополнена или изменена с помощью Enrichers и конфигурационных файлов.
+
+
+## 8. Enrichers
+
+Enrichers (обогатители) — это система компонентов, которые добавляют различные секции к тултипам. Каждый enricher определяет, где и когда должна отображаться его секция.
+
+### 8.0. Настройки Enricher'ов
+
+Каждый enricher может быть настроен через следующие параметры:
+
+#### 8.0.1. Place (Местоположение)
+
+Определяет, в какой части тултипа будет отображаться секция:
+
+- **HEADER** — в заголовке тултипа (вверху)
+- **BODY** — в теле тултипа (основная часть)
+- **FOOTER** — в подвале тултипа (внизу)
+
+#### 8.0.2. Mode (Режим отображения)
+
+Определяет условия, при которых секция будет показана:
+
+- **NONE** — секция никогда не отображается
+- **ALWAYS** — секция отображается всегда
+- **DEFAULT** — секция отображается по умолчанию (без зажатых клавиш или если для зажатой клавиши нет секций)
+- **SHIFT** — секция отображается только при зажатом Shift
+- **CTRL** — секция отображается только при зажатом Ctrl
+- **ALT** — секция отображается только при зажатом Alt
+
+Режимы можно настраивать через конфигурационные файлы, используя ключ `sections.<sectionId>.modes`.
 
 Список дефолтных секций:
 1. title
-2. itemTitle
-3. stackSize
-4. hotkeys
-5. itemInfo
-6. tooltip
-7. modInfo
-8. navigation
+1. amount
+1. hotkeys:help-text
+1. hotkeys
+1. oreDictionary
+1. itemInfo
+1. contextInfo
+1. modInfo
 
-### 7.1. title
+### 8.1. title
 
-Применяется к первой строке тултипа, если тултип не принадлежит предмету. Можно использовать все стили, которые принимает `SectionBox`.
+**Place:** HEADER
+**Mode:** ALWAYS
 
-```json
-{
-    "defaultColor": "0xFFFFFFFF"
-}
-```
+Применяется к первой строке тултипа, или к имени предмета. Можно использовать все стили, которые принимает `SectionBox`.
 
-### 7.2. itemTitle
+Вызывает событие `ItemTitleEnricherEvent`, через которое другие моды могут редактировать `displayName` если это предмет.
 
-Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`, а также пару собственных.
+### 8.2. amount
 
-```json
-{
-    "titleColor": "0xffffffff",             // displayName
-    "subtitleColor": "0xff555555",          // displaySubtitle
-    "identifierColor": "0xff555555"         // item id
-}
-```
-
-Вызывает событие `ItemTitleEnricherEvent`, через которое другие моды могут редактировать `displayName` и `displaySubtitle`.
-
-### 7.3. stackSize
+**Place:** BODY
+**Mode:** SHIFT
 
 Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`. Отображается при зажатом `Shift`.
 
@@ -767,7 +798,20 @@ Slice может принимать значения:
 - `stackSizeEnricherEnabled` — позволяет выключить эту секцию
 - `playerInventoryStackSizeEnabled` — при наведении на предмет в инвентаре игрока будет показывать не только количество под курсором, но и общее количество предметов этого типа в инвентаре игрока
 
-### 7.4. hotkeys
+### 8.3. hotkeys:help-text
+
+**Place:** BODY
+**Mode:** DEFAULT (когда есть hotkeys для отображения)
+
+Отображает подсказку о том, что нужно зажать Alt для просмотра горячих клавиш.
+
+**Настройки:**
+- `hotkeysHelpTextEnabled` — позволяет выключить подсказку
+
+### 8.4. hotkeys
+
+**Place:** BODY
+**Mode:** ALT
 
 Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`.
 
@@ -775,38 +819,97 @@ Slice может принимать значения:
 
 **Настройки:**
 - `hotkeysEnricherEnabled` — позволяет выключить эту секцию
-- `hotkeysHelpTextEnabled` — позволяет выключить подсказку о необходимости зажать `Alt`
 
+### 8.5. oreDictionary
 
-### 7.5. itemInfo
+**Place:** BODY
+**Mode:** CTRL
+
+Отображает список Ore Dictionary имён для предмета.
+
+### 8.6. itemInfo
+
+**Place:** BODY
+**Mode:** DEFAULT
 
 Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`. Отображает тултип предмета.
 
 Вызывает событие `ItemInfoEnricherEvent`, через которое другие моды могут добавить свои строки в эту секцию.
 
-### 7.6. tooltip
+### 8.7. contextInfo
+
+**Place:** BODY
+**Mode:** DEFAULT
 
 Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`. Отображает строки, которые были переданы тултипу.
 
-### 7.7. modInfo
+### 8.8. modInfo
 
-Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`.
+**Place:** FOOTER
+**Mode:** ALWAYS
 
+Применяется к тултипам, которые принадлежат предмету. Можно использовать все стили, которые принимает `SectionBox`. Отображает информацию о моде, добавившем предмет.
 
-### 7.8. navigation
+## 9. Настройка через конфигурацию
 
-Отрисовывается у тултипов, когда содержимое тултипа не помещается на экран.
+Каждый enricher можно настроить через конфигурационные файлы, изменяя его режимы отображения и местоположение:
 
+```json
+{
+    "sections": {
+        "amount": {
+            "modes": ["SHIFT", "CTRL"],
+            "place": "BODY"
+        },
+        "hotkeys": {
+            "modes": ["ALT"],
+            "place": "BODY"
+        },
+        "modInfo": {
+            "modes": ["DEFAULT"],
+            "place": "FOOTER"
+        }
+    }
+}
+```
 
-### 7.9. Расширение другими модами
+## 10. Расширение другими модами
 
 Создание обработчика, который будет обогащать тултип своими секциями:
+
+```java
+public class CustomEnricher implements ITooltipEnricher {
+
+    @Override
+    public String sectionId() {
+        return "custom_section"; // Уникальный ID секции
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.BODY; // Где отображать секцию
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.SHIFT); // Когда отображать
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
+        // Логика создания компонентов секции
+        return components;
+    }
+}
+```
+
+Регистрация enricher'а:
 
 ```java
 TooltipHandler.addEnricher(String id, ITooltipEnricher enricher)
 ```
 
-### 7.10. Вызов тултипа в другом моде
+## 11. Вызов тултипа в другом моде
 
 ```java
 TooltipHandler.drawHoveringText(List<?> textLines)

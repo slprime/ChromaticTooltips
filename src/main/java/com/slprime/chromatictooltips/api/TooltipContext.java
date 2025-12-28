@@ -14,8 +14,9 @@ import com.slprime.chromatictooltips.util.TooltipFontContext;
 public class TooltipContext {
 
     protected ItemStack stack;
-    protected long lastFrameTime;
+    protected long animationStartTime;
     protected String context;
+    protected List<ITooltipComponent> contextTooltip = new ArrayList<>();
     protected List<SectionTooltipComponent> lines = new ArrayList<>();
     protected Rectangle anchorBounds = new Rectangle(0, 0, 0, 0);
 
@@ -24,11 +25,12 @@ public class TooltipContext {
     protected int mouseX;
     protected int mouseY;
 
-    public TooltipContext(String context, ITooltipRenderer renderer, ItemStack stack) {
+    public TooltipContext(TooltipRequest request, ITooltipRenderer renderer) {
         this.renderer = renderer;
-        this.stack = stack != null ? stack.copy() : null;
-        this.context = context;
-        this.lastFrameTime = System.currentTimeMillis();
+        this.context = request.context;
+        this.animationStartTime = System.currentTimeMillis();
+        this.stack = request.stack != null ? request.stack.copy() : null;
+        this.contextTooltip.addAll(request.tooltip.buildComponents(this));
     }
 
     public void setStack(ItemStack stack) {
@@ -46,8 +48,8 @@ public class TooltipContext {
         return this.context;
     }
 
-    public long getLastFrameTime() {
-        return this.lastFrameTime;
+    public long getAnimationStartTime() {
+        return this.animationStartTime;
     }
 
     public int getMouseX() {
@@ -87,11 +89,15 @@ public class TooltipContext {
         return this.stack;
     }
 
-    public List<SectionTooltipComponent> getComponents() {
+    public List<ITooltipComponent> getContextTooltip() {
+        return Collections.unmodifiableList(this.contextTooltip);
+    }
+
+    public List<SectionTooltipComponent> getSections() {
         return Collections.unmodifiableList(this.lines);
     }
 
-    public void addSectionComponent(int index, String sectionId, List<ITooltipComponent> components) {
+    public void addSection(int index, String sectionId, List<ITooltipComponent> components) {
         if (components == null || components.isEmpty()) return;
         index = Math.max(0, Math.min(index, this.lines.size()));
         this.lines
@@ -99,7 +105,7 @@ public class TooltipContext {
         this.revision++;
     }
 
-    public void addSectionComponent(String sectionId, List<ITooltipComponent> components) {
+    public void addSection(String sectionId, List<ITooltipComponent> components) {
         if (components == null || components.isEmpty()) return;
         this.lines.add(new SectionTooltipComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
         this.revision++;
@@ -109,7 +115,7 @@ public class TooltipContext {
         return this.revision;
     }
 
-    public void clearComponents() {
+    public void clear() {
         this.lines.clear();
         this.revision++;
     }

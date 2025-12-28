@@ -6,8 +6,6 @@
         "offsetMain": 6,
         "offsetCross": -18,
 
-        "defaultColor": "0x808080",
-
         "decorators": [{
             "type": "background",
             "color": "0xF0100010",
@@ -19,17 +17,72 @@
         }],
 
         "spacing": {
-            "paragraph": 8,
-            "section": 6,
-            "hr": 6
+            "section": 2,
+            "paragraph": 6,
+            "hr": 0,
+
+            "divider": {
+                "decorator": {
+                    "type": "background",
+                    "color": "0xFFFFFFFF",
+                    "alignBlock": "center",
+                    "height": 1
+                },
+                "height": 10
+            }
         },
 
-        "title": {
-            "defaultColor": "0xFFFFFFFF"
+        "header": {
+            "spacing": 4
+        },
+
+        "body": {
+            "spacing": 2
+        },
+
+        "footer": {
+            "spacing": 2
+        },
+
+        "sections": {
+
+            "title": {
+
+            },
+
+            "amount": {
+                "spacing": 2
+            },
+
+            "hotkeys:help-text": {
+
+            },
+
+            "hotkeys": {
+
+            },
+
+            "contextInfo": {
+
+            },
+
+            "itemInfo": {
+
+            },
+
+            "modInfo": {
+
+            },
+
+            "oreDictionary": {
+
+            }
+
         },
 
         "navigation": {
-            "marginTop": 6
+            "marginTop": 4
         }
+
     }
 }

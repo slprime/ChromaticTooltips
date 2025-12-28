@@ -88,13 +88,21 @@ public class SectionTooltipComponent extends SectionBox {
         final List<ITooltipComponent> firstPage = new ArrayList<>();
         final List<ITooltipComponent> secondPage = new ArrayList<>();
         boolean firstPageIsEmpty = true;
-        int lastMarginBottom = 0;
+        int lastSpacing = 0;
         int currentHeight = 0;
+
+        if (this.spacing <= 0) {
+            this.spacing = context.getRenderer()
+                .getStyle()
+                .getAsInt("sectionSpacing", 4);
+        }
 
         maxHeight -= getBlock();
 
+        this.fontContext.pushContext();
+
         for (ITooltipComponent component : this.components) {
-            final int remainingHeight = maxHeight - currentHeight - lastMarginBottom;
+            final int remainingHeight = maxHeight - currentHeight - lastSpacing;
 
             if (firstPageIsEmpty || remainingHeight > 0) {
                 final ITooltipComponent[] split = component.paginate(context, maxWidth, remainingHeight);
@@ -104,14 +112,14 @@ public class SectionTooltipComponent extends SectionBox {
                 if (firstPageIsEmpty || remainingHeight >= compHeight) {
 
                     if (firstComponent instanceof SpaceTooltipComponent) {
-                        lastMarginBottom = 0;
+                        lastSpacing = 0;
                         if (firstPageIsEmpty || firstPage.get(firstPage.size() - 1) instanceof SpaceTooltipComponent) {
                             continue;
                         }
                     }
 
-                    currentHeight += compHeight + lastMarginBottom;
-                    lastMarginBottom = firstComponent.getSpacing();
+                    currentHeight += compHeight + lastSpacing;
+                    lastSpacing = firstComponent.getSpacing();
                     firstPage.add(firstComponent);
                     firstPageIsEmpty = false;
                 } else {
@@ -127,6 +135,8 @@ public class SectionTooltipComponent extends SectionBox {
                 secondPage.add(component);
             }
         }
+
+        this.fontContext.popContext();
 
         if (secondPage.isEmpty()) {
             return new ITooltipComponent[] { createInstance(firstPage) };

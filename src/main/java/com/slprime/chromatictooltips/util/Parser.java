@@ -9,7 +9,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.slprime.chromatictooltips.ChromaticTooltips;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 
 public class Parser {
@@ -39,7 +41,14 @@ public class Parser {
                 }
             }
 
+        } catch (JsonParseException e) {
+            ChromaticTooltips.LOG.error("JSON parsing error: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            ChromaticTooltips.LOG.error("Invalid JSON structure: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
+            ChromaticTooltips.LOG.error("Unexpected error during JSON parsing: " + e.getMessage());
             e.printStackTrace();
         }
 

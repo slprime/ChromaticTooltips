@@ -112,10 +112,18 @@ A tooltip style for items with rare rarity:
   "styles": [
     {
       "type": "item | default | <custom>",
-      "filter": { ... },
+      "filter": "...",
 
       "offsetMain": "<int>",
       "offsetCross": "<int>",
+
+      "sectionSpacing": "<int>",
+
+      "hr": {
+        "decorators": [ "<TooltipDecorator>" ],
+        "transform": "<TooltipTransform>",
+        "height" "<int>"
+      },
 
       "<SectionBox>"
     }
@@ -129,7 +137,7 @@ or `style` if you don't have multiple tooltips
 {
     "style": {
         "type": "item | default | <custom>",
-        "filter": { ... },
+        "filter": "...",
 
         "offsetMain": "<int>",
         "offsetCross": "<int>",
@@ -214,8 +222,8 @@ Supported formats:
 
 ```json
 {
-  "defaultColor": "0xFFFFFFFF",
   "fontShadow": true,
+  "fontParagrath": "<int>",
   "fontColors": {
     "gold": ["0xFFFFD700", "0xFFB8860B"]
   }
@@ -227,8 +235,8 @@ Supported formats:
 ```json
 {
     "font": {
-        "defaultColor": "0xFFFFFFFF",
         "shadow": true,
+        "paragrath": "<int>",
         "colors": {
             "gold": ["0xFFFFD700", "0xFFB8860B"]
         }
@@ -240,8 +248,8 @@ Supported formats:
 
 | Field | Type | Description | Alias |
 |-------|------|-------------|-------|
-| `defaultColor` | int, color | Default color | — |
 | `fontShadow` | boolean | Font shadow | `font.shadow` |
+| `fontParagrath` | int | Height for empty line | `font.paragrath` |
 | `fontColors` | object | Custom font colors | `font.colors` |
 
 ### fontColors / font.colors
@@ -718,43 +726,79 @@ If the last keyframe doesn't have `progress: 100`, it's automatically added:
 }
 ```
 
-## 7. Enrichers
+## 7. Basic tooltip sections
+
+In the Chromatic Tooltips system, basic sections define the structure and placement of information within tooltips. Each section can contain various components and styles, and can be extended through Enrichers.
+
+### List of basic sections:
+
+1. **header**
+  Top part of the tooltip. Usually contains the item name or title. Components like `title` are added here, as well as any additional elements that should be displayed at the beginning of the tooltip.
+
+2. **body**
+  Main part of the tooltip. Here detailed information about the item, its properties, description, quantity, hotkeys, Ore Dictionary and other content-related sections are displayed.
+
+3. **footer**
+  Bottom part of the tooltip. Used to display information about the mod that added the item, as well as other auxiliary data that should be at the end of the tooltip.
+
+4. **navigation**
+  Additional section for navigation elements. Drawn only if the tooltip doesn't fit on screen.
+
+Each section is configured through JSON styles and can be supplemented or modified using Enrichers and configuration files.
+
+
+## 8. Enrichers
+
+Enrichers are a system of components that add various sections to tooltips. Each enricher defines where and when its section should be displayed.
+
+### 8.0. Enricher Settings
+
+Each enricher can be configured through the following parameters:
+
+#### 8.0.1. Place (Location)
+
+Defines which part of the tooltip the section will be displayed in:
+
+- **HEADER** — in the tooltip header (top)
+- **BODY** — in the tooltip body (main part)
+- **FOOTER** — in the tooltip footer (bottom)
+
+#### 8.0.2. Mode (Display mode)
+
+Defines the conditions under which the section will be shown:
+
+- **NONE** — section never displays
+- **ALWAYS** — section displays always
+- **DEFAULT** — section displays by default (without pressed keys or if there are no sections for the pressed key)
+- **SHIFT** — section displays only when Shift is pressed
+- **CTRL** — section displays only when Ctrl is pressed
+- **ALT** — section displays only when Alt is pressed
+
+Modes can be configured through configuration files using the key `sections.<sectionId>.modes`.
 
 List of default sections:
 1. title
-2. itemTitle
-3. stackSize
-4. hotkeys
-5. itemInfo
-6. tooltip
-7. modInfo
-8. navigation
+1. amount
+1. hotkeys:help-text
+1. hotkeys
+1. oreDictionary
+1. itemInfo
+1. contextInfo
+1. modInfo
 
-### 7.1. title
+### 8.1. title
 
-Applies to the first line of the tooltip if the tooltip does not belong to an item. You can use all styles that `SectionBox` accepts.
+**Place:** HEADER
+**Mode:** ALWAYS
 
-```json
-{
-    "defaultColor": "0xFFFFFFFF"
-}
-```
+Applies to the first line of the tooltip, or to the item name. You can use all styles that `SectionBox` accepts.
 
-### 7.2. itemTitle
+Triggers `ItemTitleEnricherEvent` through which other mods can edit `displayName` if it's an item.
 
-Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts, as well as a couple of custom ones.
+### 8.2. amount
 
-```json
-{
-    "titleColor": "0xffffffff",             // displayName
-    "subtitleColor": "0xff555555",          // displaySubtitle
-    "identifierColor": "0xff555555"         // item id
-}
-```
-
-Triggers `ItemTitleEnricherEvent` through which other mods can edit `displayName` and `displaySubtitle`.
-
-### 7.3. stackSize
+**Place:** BODY
+**Mode:** SHIFT
 
 Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts. Displayed when `Shift` is pressed.
 
@@ -764,7 +808,20 @@ Triggers `StackSizeEnricherEvent` through which other mods can edit `stackSize` 
 - `stackSizeEnricherEnabled` — allows disabling this section
 - `playerInventoryStackSizeEnabled` — when hovering over an item in the player's inventory, will show not only the quantity under the cursor, but also the total quantity of items of this type in the player's inventory
 
-### 7.4. hotkeys
+### 8.3. hotkeys:help-text
+
+**Place:** BODY
+**Mode:** DEFAULT (when there are hotkeys to display)
+
+Displays a hint that you need to press Alt to view hotkeys.
+
+**Settings:**
+- `hotkeysHelpTextEnabled` — allows disabling the hint
+
+### 8.4. hotkeys
+
+**Place:** BODY
+**Mode:** ALT
 
 Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts.
 
@@ -772,37 +829,97 @@ Triggers `HotkeyEnricherEvent` through which other mods can add their hotkeys fo
 
 **Settings:**
 - `hotkeysEnricherEnabled` — allows disabling this section
-- `hotkeysHelpTextEnabled` — allows disabling the hint about needing to press `Alt`
 
+### 8.5. oreDictionary
 
-### 7.5. itemInfo
+**Place:** BODY
+**Mode:** CTRL
+
+Displays a list of Ore Dictionary names for the item.
+
+### 8.6. itemInfo
+
+**Place:** BODY
+**Mode:** DEFAULT
 
 Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts. Displays item tooltip.
 
 Triggers `ItemInfoEnricherEvent` through which other mods can add their lines to this section.
 
-### 7.6. tooltip
+### 8.7. contextInfo
+
+**Place:** BODY
+**Mode:** DEFAULT
 
 Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts. Displays lines that were passed to the tooltip.
 
-### 7.7. modInfo
+### 8.8. modInfo
 
-Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts.
+**Place:** FOOTER
+**Mode:** ALWAYS
 
-### 7.8. navigation
+Applies to tooltips that belong to an item. You can use all styles that `SectionBox` accepts. Displays information about the mod that added the item.
 
-Rendered for tooltips when tooltip content doesn't fit on screen.
+## 9. Configuration
 
+Each enricher can be configured through configuration files, changing its display modes and location:
 
-### 7.9. Extension by other mods
+```json
+{
+    "sections": {
+        "amount": {
+            "modes": ["SHIFT", "CTRL"],
+            "place": "BODY"
+        },
+        "hotkeys": {
+            "modes": ["ALT"],
+            "place": "BODY"
+        },
+        "modInfo": {
+            "modes": ["DEFAULT"],
+            "place": "FOOTER"
+        }
+    }
+}
+```
+
+## 10. Extension by other mods
 
 Creating a handler that will enrich the tooltip with its own sections:
+
+```java
+public class CustomEnricher implements ITooltipEnricher {
+
+    @Override
+    public String sectionId() {
+        return "custom_section"; // Unique section ID
+    }
+
+    @Override
+    public EnricherPlace place() {
+        return EnricherPlace.BODY; // Where to display the section
+    }
+
+    @Override
+    public EnumSet<EnricherMode> mode() {
+        return EnumSet.of(EnricherMode.SHIFT); // When to display
+    }
+
+    @Override
+    public List<ITooltipComponent> build(TooltipContext context) {
+        // Logic for creating section components
+        return components;
+    }
+}
+```
+
+Registering an enricher:
 
 ```java
 TooltipHandler.addEnricher(String id, ITooltipEnricher enricher)
 ```
 
-### 7.10. Tooltip calls in other mods
+## 11. Tooltip calls in other mods
 
 ```java
 TooltipHandler.drawHoveringText(List<?> textLines)

@@ -1,5 +1,8 @@
 package com.slprime.chromatictooltips.util;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -36,6 +39,8 @@ import cpw.mods.fml.common.registry.GameData;
  */
 public class ItemStackFilterParser {
 
+    protected static final Map<String, Function<String, Predicate<ItemStack>>> customFilters = new HashMap<>();
+
     private ItemStackFilterParser() {}
 
     public static Predicate<ItemStack> parse(String filterText) {
@@ -54,6 +59,10 @@ public class ItemStackFilterParser {
         }
 
         return hasFilters ? filter : null;
+    }
+
+    public static void registerCustomFilter(String name, Function<String, Predicate<ItemStack>> filterFunction) {
+        ItemStackFilterParser.customFilters.put(name, filterFunction);
     }
 
     private static Predicate<ItemStack> parsePart(String part) {
@@ -81,7 +90,7 @@ public class ItemStackFilterParser {
 
         for (String rule : token.split(",")) {
             boolean ignore = rule.startsWith("!");
-            Predicate<ItemStack> filter;
+            Predicate<ItemStack> filter = null;
 
             if (ignore) {
                 rule = rule.substring(1);
@@ -96,7 +105,19 @@ public class ItemStackFilterParser {
             } else if (Pattern.matches("^\\d+(-\\d+)?$", rule)) {
                 filter = getDamageFilter(rule);
             } else {
-                filter = getStringIdentifierFilter(rule);
+
+                if (rule.contains(":")) {
+                    final String[] parts = rule.split(":", 2);
+                    final Function<String, Predicate<ItemStack>> customFilter = ItemStackFilterParser.customFilters.get(parts[0]);
+
+                    if (customFilter != null) {
+                        filter = customFilter.apply(parts[1]);
+                    }
+                }
+
+                if (filter == null) {
+                    filter = getStringIdentifierFilter(rule);
+                }
             }
 
             if (filter == null) {
@@ -200,6 +221,10 @@ public class ItemStackFilterParser {
     protected static Predicate<ItemStack> getStringIdentifierFilter(String rule) {
         final FMLControlledNamespacedRegistry<Item> iItemRegistry = GameData.getItemRegistry();
         final Predicate<String> matcher = getMatcher(rule);
+
+        if (matcher == null) {
+            return null;
+        }
 
         return stack -> {
             String name = iItemRegistry.getNameForObject(stack.getItem());

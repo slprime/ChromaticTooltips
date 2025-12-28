@@ -13,14 +13,14 @@ public class TooltipFontContext {
 
     protected static class Context {
 
-        public int defaultColor = INHERIT_COLOR;
         public int[] colors = new int[32];
         public boolean shadow = true;
+        public int paragraph = 6;
 
-        public Context(int defaultColor, int[] colors, boolean shadow) {
+        public Context(int[] colors, boolean shadow, int paragraph) {
             this.colors = Arrays.copyOf(TooltipFontContext.getFontRenderer().colorCode, 32);
-            this.defaultColor = defaultColor;
             this.shadow = shadow;
+            this.paragraph = paragraph;
 
             for (int i = 0; i < colors.length; i++) {
                 if (colors[i] != INHERIT_COLOR) {
@@ -35,9 +35,8 @@ public class TooltipFontContext {
         }
     }
 
-    public static final int INHERIT_COLOR = 0x00000000;
-
     protected static FontRenderer fontRenderer = null;
+    protected static final int INHERIT_COLOR = 0x00000000;
     protected static final String[] colorOrders = new String[] { "black", "dark_blue", "dark_green", "dark_aqua",
         "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple",
         "yellow", "white" };
@@ -46,20 +45,23 @@ public class TooltipFontContext {
     protected static Context activeContext = null;
 
     protected int[] customColors = new int[32];
-    protected int defaultColor = INHERIT_COLOR;
     protected Boolean shadow = null;
+    protected Integer paragraph = null;
 
     public TooltipFontContext(TooltipStyle formatting) {
         final TooltipStyle colorStyle = new TooltipStyle(
             formatting.getAsJsonObject("font.colors", formatting.getAsJsonObject("fontColors", new JsonObject())));
 
-        this.defaultColor = formatting
-            .getAsColor("font.defaultColor", formatting.getAsColor("defaultColor", this.defaultColor));
-
         if (formatting.containsKey("font.shadow")) {
             this.shadow = formatting.getAsBoolean("font.shadow", true);
         } else if (formatting.containsKey("fontShadow")) {
             this.shadow = formatting.getAsBoolean("fontShadow", true);
+        }
+
+        if (formatting.containsKey("font.paragraph")) {
+            this.paragraph = formatting.getAsInt("font.paragraph", 6);
+        } else if (formatting.containsKey("fontParagraph")) {
+            this.paragraph = formatting.getAsInt("fontParagraph", 6);
         }
 
         Arrays.fill(this.customColors, INHERIT_COLOR);
@@ -94,18 +96,22 @@ public class TooltipFontContext {
 
     }
 
-    public void pushContext() {
+    protected static Context context() {
 
         if (TooltipFontContext.activeContext == null) {
-            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
+            TooltipFontContext.activeContext = new Context(new int[0], true, 6);
         }
 
-        this.previousContext = TooltipFontContext.activeContext;
+        return TooltipFontContext.activeContext;
+    }
+
+    public void pushContext() {
+        this.previousContext = context();
 
         TooltipFontContext.activeContext = new Context(
-            this.defaultColor == INHERIT_COLOR ? TooltipFontContext.activeContext.defaultColor : this.defaultColor,
             this.customColors,
-            this.shadow == null ? TooltipFontContext.activeContext.shadow : this.shadow);
+            this.shadow == null ? TooltipFontContext.activeContext.shadow : this.shadow,
+            this.paragraph == null ? TooltipFontContext.activeContext.paragraph : this.paragraph);
 
         TooltipFontContext.activeContext.applyColors();
     }
@@ -116,16 +122,11 @@ public class TooltipFontContext {
     }
 
     public static int getColor(int index) {
+        return context().colors[index];
+    }
 
-        if (TooltipFontContext.activeContext == null) {
-            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
-        }
-
-        if (index < 0 || index >= 32) {
-            return TooltipFontContext.activeContext.defaultColor;
-        }
-
-        return TooltipFontContext.activeContext.colors[index];
+    public static int getParagraphSpacing() {
+        return context().paragraph;
     }
 
     public static FontRenderer getFontRenderer() {
@@ -146,20 +147,11 @@ public class TooltipFontContext {
     }
 
     public static void drawString(String text, int x, int y) {
-        drawString(text, x, y, TooltipFontContext.activeContext.defaultColor);
+        drawString(text, x, y, 0xffffffff);
     }
 
     public static void drawString(String text, int x, int y, int color) {
-
-        if (TooltipFontContext.activeContext == null) {
-            TooltipFontContext.activeContext = new Context(0xffffffff, new int[0], true);
-        }
-
-        if (color == TooltipFontContext.INHERIT_COLOR) {
-            color = TooltipFontContext.activeContext.defaultColor;
-        }
-
-        getFontRenderer().drawString(text, x, y, color, TooltipFontContext.activeContext.shadow);
+        getFontRenderer().drawString(text, x, y, color, context().shadow);
     }
 
 }

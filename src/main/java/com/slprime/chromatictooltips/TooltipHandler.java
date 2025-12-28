@@ -6,10 +6,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -21,14 +20,15 @@ import net.minecraft.util.ResourceLocation;
 
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
 import com.slprime.chromatictooltips.api.TooltipBuilder;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipRequest;
 import com.slprime.chromatictooltips.api.TooltipStyle;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
-import com.slprime.chromatictooltips.event.TooltipEnricherEvent;
+import com.slprime.chromatictooltips.component.SectionTooltipComponent;
 import com.slprime.chromatictooltips.util.BlacklistLines;
 import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.Parser;
@@ -44,8 +44,11 @@ public class TooltipHandler {
     protected static ITooltipRenderer defaultTooltipRenderer = null;
     protected static Map<String, List<ITooltipRenderer>> otherTooltipRenderers = new HashMap<>();
 
+    protected static final Parser parser = new Parser();
     protected static Class<? extends ITooltipRenderer> rendererClass = null;
-    protected static final Map<String, ITooltipEnricher> tooltipEnrichers = new LinkedHashMap<>();
+    protected static final List<ITooltipEnricher> tooltipEnrichers = new ArrayList<>();
+    protected static final Map<String, EnumSet<EnricherMode>> enricherModesCache = new HashMap<>();
+    protected static final Map<String, EnricherPlace> enricherPlaceCache = new HashMap<>();
 
     // cache
     protected static TooltipContext lastContext = null;
@@ -56,6 +59,8 @@ public class TooltipHandler {
     public static void reload() {
         TooltipHandler.otherTooltipRenderers.clear();
         TooltipHandler.defaultTooltipRenderer = null;
+        TooltipHandler.enricherModesCache.clear();
+        TooltipHandler.enricherPlaceCache.clear();
 
         loadTooltipResource();
 
@@ -67,7 +72,7 @@ public class TooltipHandler {
     }
 
     protected static void parseStyle(String json) {
-        final List<TooltipStyle> scopes = (new Parser()).parse(json);
+        final List<TooltipStyle> scopes = TooltipHandler.parser.parse(json);
 
         for (TooltipStyle style : scopes) {
             String context = style.getAsString("context", null);
@@ -109,6 +114,44 @@ public class TooltipHandler {
 
     }
 
+    protected static EnumSet<EnricherMode> getEnricherModes(ITooltipEnricher enricher, ITooltipRenderer renderer) {
+
+        return TooltipHandler.enricherModesCache.computeIfAbsent(enricher.sectionId(), sectionId -> {
+            final String key = "sections." + sectionId + ".modes";
+            EnumSet<EnricherMode> modes = enricher.mode();
+
+            if (renderer.getStyle()
+                .containsKey(key)) {
+                modes = EnumSet.noneOf(EnricherMode.class);
+
+                for (String mode : renderer.getStyle()
+                    .getAsStringArray(key, new String[0])) {
+                    if (mode != null && !mode.isEmpty()) {
+                        modes.add(EnricherMode.fromString(mode));
+                    }
+                }
+            }
+
+            return modes;
+        });
+
+    }
+
+    protected static EnricherPlace getEnricherPlace(ITooltipEnricher enricher, ITooltipRenderer renderer) {
+
+        return TooltipHandler.enricherPlaceCache.computeIfAbsent(enricher.sectionId(), sectionId -> {
+            final String key = "sections." + sectionId + ".place";
+
+            return EnricherPlace.fromString(
+                renderer.getStyle()
+                    .getAsString(
+                        key,
+                        enricher.place()
+                            .name()));
+        });
+
+    }
+
     protected static ITooltipRenderer createRenderer(TooltipStyle style) {
         try {
             return TooltipHandler.rendererClass.getConstructor(TooltipStyle.class)
@@ -136,8 +179,27 @@ public class TooltipHandler {
             .orElse(null);
     }
 
-    public static void addEnricher(String id, ITooltipEnricher enricher) {
-        TooltipHandler.tooltipEnrichers.put(id, enricher);
+    public static void addEnricher(ITooltipEnricher enricher) {
+        TooltipHandler.tooltipEnrichers.add(enricher);
+    }
+
+    public static void addEnricherAfter(String sectionId, ITooltipEnricher enricher) {
+        int index = -1;
+
+        for (int i = 0; i < TooltipHandler.tooltipEnrichers.size(); i++) {
+            if (TooltipHandler.tooltipEnrichers.get(i)
+                .sectionId()
+                .equalsIgnoreCase(sectionId)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index != -1) {
+            TooltipHandler.tooltipEnrichers.add(index + 1, enricher);
+        } else {
+            TooltipHandler.tooltipEnrichers.add(enricher);
+        }
     }
 
     public static void setRendererClass(Class<? extends ITooltipRenderer> rendererClass) {
@@ -158,6 +220,11 @@ public class TooltipHandler {
     }
 
     public static void drawHoveringText(TooltipRequest request) {
+        if (request == null) {
+            ChromaticTooltips.LOG.error("drawHoveringText called with null request");
+            return;
+        }
+
         final int currentHash = ClientUtil.getMetaHash();
         boolean updateContent = false;
 
@@ -192,21 +259,18 @@ public class TooltipHandler {
         }
 
         if (TooltipHandler.lastContext == null) {
-            TooltipHandler.lastContext = new TooltipContext(
-                request.context,
-                getRendererFor(request.context, request.stack),
-                request.stack);
+            TooltipHandler.lastContext = new TooltipContext(request, getRendererFor(request.context, request.stack));
             updateContent = true;
         }
 
         if (updateContent || TooltipHandler.lastHashCode != currentHash) {
-            TooltipHandler.lastContext.clearComponents();
+            TooltipHandler.lastContext.clear();
             TooltipHandler.lastContext.setStack(request.stack);
             TooltipHandler.lastContext.setPosition(mouse);
 
             TooltipHandler.lastHashCode = currentHash;
             TooltipHandler.lastTextLines = request.tooltip;
-            enrichTooltip(TooltipHandler.lastContext, request.tooltip.buildComponents(TooltipHandler.lastContext));
+            enrichTooltip(TooltipHandler.lastContext);
         } else {
             TooltipHandler.lastContext.setPosition(mouse);
         }
@@ -217,7 +281,12 @@ public class TooltipHandler {
     protected static boolean areItemStackEqual(ItemStack stackA, ItemStack stackB) {
         if (stackA == null && stackB == null) return true;
         if (stackA == null || stackB == null) return false;
-        return stackA.isItemEqual(stackB) && ItemStack.areItemStackTagsEqual(stackA, stackB);
+        if (!stackA.isItemEqual(stackB)) return false;
+        if (stackA.hasTagCompound() && stackB.hasTagCompound())
+            return stackA.stackTagCompound.equals(stackB.stackTagCompound);
+
+        return (stackA.stackTagCompound == null || stackA.stackTagCompound.hasNoTags())
+            && (stackB.stackTagCompound == null || stackB.stackTagCompound.hasNoTags());
     }
 
     protected static void clearCache() {
@@ -227,30 +296,74 @@ public class TooltipHandler {
         TooltipHandler.lastHashCode = 0;
     }
 
-    protected static void enrichTooltip(TooltipContext context, List<ITooltipComponent> lines) {
+    protected static void enrichTooltip(TooltipContext context) {
+        final int enricherCount = TooltipHandler.tooltipEnrichers.size();
+        final EnricherMode activeModifier = getActiveModifier();
+        final ITooltipRenderer renderer = context.getRenderer();
 
-        if (context.getStack() == null && !lines.isEmpty() && lines.get(0) instanceof TextTooltipComponent) {
-            context.addSectionComponent("title", Arrays.asList(lines.remove(0)));
+        final List<ITooltipComponent> headerSections = new ArrayList<>(enricherCount);
+        final List<ITooltipComponent> bodySections = new ArrayList<>(enricherCount);
+        final List<ITooltipComponent> footerSections = new ArrayList<>(enricherCount);
+
+        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+            final EnumSet<EnricherMode> modes = getEnricherModes(enricher, renderer);
+
+            if (modes.contains(EnricherMode.ALWAYS) || activeModifier != null && modes.contains(activeModifier)) {
+                final List<ITooltipComponent> result = enricher.build(context);
+
+                if (result != null && !result.isEmpty()) {
+                    final EnricherPlace place = getEnricherPlace(enricher, renderer);
+                    final String sectionId = enricher.sectionId();
+                    final SectionTooltipComponent section = new SectionTooltipComponent(
+                        sectionId,
+                        renderer.getSectionBox("sections." + sectionId),
+                        result);
+                    if (place == ITooltipEnricher.EnricherPlace.HEADER) {
+                        headerSections.add(section);
+                    } else if (place == ITooltipEnricher.EnricherPlace.BODY) {
+                        bodySections.add(section);
+                    } else if (place == ITooltipEnricher.EnricherPlace.FOOTER) {
+                        footerSections.add(section);
+                    }
+
+                }
+            }
         }
 
-        for (Map.Entry<String, ITooltipEnricher> entry : TooltipHandler.tooltipEnrichers.entrySet()) {
-            context.addSectionComponent(
-                entry.getKey(),
-                entry.getValue()
-                    .enrich(context));
+        if (bodySections.isEmpty()) {
+            for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+                final EnumSet<EnricherMode> modes = getEnricherModes(enricher, renderer);
+                final EnricherPlace place = getEnricherPlace(enricher, renderer);
+
+                if (place == ITooltipEnricher.EnricherPlace.BODY && modes.contains(EnricherMode.DEFAULT)) {
+                    final List<ITooltipComponent> result = enricher.build(context);
+
+                    if (result != null && !result.isEmpty()) {
+                        final String sectionId = enricher.sectionId();
+                        final SectionTooltipComponent section = new SectionTooltipComponent(
+                            sectionId,
+                            renderer.getSectionBox("sections." + sectionId),
+                            result);
+                        bodySections.add(section);
+                    }
+                }
+            }
         }
 
-        if (!lines.isEmpty()) {
-            context.addSectionComponent(
-                Math.max(
-                    1,
-                    context.getComponents()
-                        .size() - 1),
-                "tooltip",
-                lines);
-        }
+        context.addSection("header", headerSections);
+        context.addSection("body", bodySections);
+        context.addSection("footer", footerSections);
+    }
 
-        ClientUtil.postEvent(new TooltipEnricherEvent(context));
+    protected static EnricherMode getActiveModifier() {
+        if (ClientUtil.shiftKey()) {
+            return EnricherMode.SHIFT;
+        } else if (ClientUtil.controlKey()) {
+            return EnricherMode.CTRL;
+        } else if (ClientUtil.altKey()) {
+            return EnricherMode.ALT;
+        }
+        return null;
     }
 
     protected static ITooltipRenderer getRendererFor(String context, ItemStack stack) {
@@ -266,7 +379,7 @@ public class TooltipHandler {
             }
         }
 
-        if (stack != null && !"item".equals(context)) {
+        if (stack != null && !"item".equals(context) && !"default".equals(context)) {
 
             for (ITooltipRenderer renderer : TooltipHandler.otherTooltipRenderers
                 .getOrDefault("item", Collections.emptyList())) {
