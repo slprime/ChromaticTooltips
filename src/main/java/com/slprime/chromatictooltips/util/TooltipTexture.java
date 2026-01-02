@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL11;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.slprime.chromatictooltips.ChromaticTooltips;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 
 public class TooltipTexture {
@@ -81,11 +82,9 @@ public class TooltipTexture {
 
     public TooltipTexture(TooltipStyle style) {
         final String path = style.getAsString("path", "textures/tooltip.png");
-        this.resourceLocation = new ResourceLocation(path.contains(":") ? path : "chromatictooltips:" + path);
+        this.resourceLocation = new ResourceLocation(path.contains(":") ? path : ChromaticTooltips.MODID + ":" + path);
 
-        ClientUtil.mc()
-            .getTextureManager()
-            .bindTexture(this.resourceLocation);
+        ClientUtil.bindTexture(this.resourceLocation);
         this.textureWidth = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
         this.textureHeight = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
 
@@ -493,9 +492,7 @@ public class TooltipTexture {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glColor4f(mixColor >> 16 & 255, mixColor >> 8 & 255, mixColor & 255, mixColor >> 24 & 255);
-        ClientUtil.mc()
-            .getTextureManager()
-            .bindTexture(this.resourceLocation);
+        ClientUtil.bindTexture(this.resourceLocation);
 
         if (this.calculatedInlineSizes == null || this.lastInlineWidth != width) {
 

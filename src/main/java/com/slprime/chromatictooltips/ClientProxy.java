@@ -10,7 +10,9 @@ import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
 import com.slprime.chromatictooltips.enricher.AmountEnricher;
+import com.slprime.chromatictooltips.enricher.AttributeModifierEnricher;
 import com.slprime.chromatictooltips.enricher.ContextInfoEnricher;
+import com.slprime.chromatictooltips.enricher.EnchantmentEnricher;
 import com.slprime.chromatictooltips.enricher.HotkeyEnricher;
 import com.slprime.chromatictooltips.enricher.HotkeyHelpTextEnricher;
 import com.slprime.chromatictooltips.enricher.ItemInfoEnricher;
@@ -52,11 +54,14 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         ClientRegistry.registerKeyBinding(previousPage);
 
         TooltipHandler.addEnricher(new TitleEnricher());
+        TooltipHandler.addEnricher(new AttributeModifierEnricher(true));
         TooltipHandler.addEnricher(new AmountEnricher());
         TooltipHandler.addEnricher(new HotkeyHelpTextEnricher());
         TooltipHandler.addEnricher(new HotkeyEnricher());
-        TooltipHandler.addEnricher(new OreDictionaryEnricher());
         TooltipHandler.addEnricher(new ItemInfoEnricher());
+        TooltipHandler.addEnricher(new EnchantmentEnricher());
+        TooltipHandler.addEnricher(new AttributeModifierEnricher(false));
+        TooltipHandler.addEnricher(new OreDictionaryEnricher());
         TooltipHandler.addEnricher(new ContextInfoEnricher());
         TooltipHandler.addEnricher(new ModInfoEnricher());
 

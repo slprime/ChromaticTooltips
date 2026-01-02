@@ -13,13 +13,14 @@ import net.minecraft.util.EnumChatFormatting;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.event.ItemTitleEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 public class TitleEnricher implements ITooltipEnricher {
 
-    protected static class StackTitleTooltipComponent extends TextTooltipComponent {
+    protected static class StackTitleTooltipComponent extends TextComponent {
 
         protected ITooltipComponent identifierComponent;
 
@@ -65,11 +66,15 @@ public class TitleEnricher implements ITooltipEnricher {
         if (stack == null) {
             final List<ITooltipComponent> lines = context.getContextTooltip();
 
-            if (!lines.isEmpty() && lines.get(0) instanceof TextTooltipComponent title) {
-                final String line = title.getLines()
+            if (!lines.isEmpty() && lines.get(0) instanceof TextComponent title) {
+                String line = title.getLines()
                     .get(0);
-                return Collections.singletonList(
-                    new TextTooltipComponent(EnumChatFormatting.WHITE + line.replaceAll("^(?:§[0-9a-fk-or])+", "")));
+
+                if (ClientUtil.getColorCodeIndex(line) == TooltipLines.BASE_COLOR.ordinal()) {
+                    line = EnumChatFormatting.WHITE + line.replaceAll("^(?:§[0-9a-fk-or])+", "");
+                }
+
+                return Collections.singletonList(new TextComponent(line));
             }
 
             return null;
@@ -80,7 +85,7 @@ public class TitleEnricher implements ITooltipEnricher {
     }
 
     protected List<ITooltipComponent> itemTitle(TooltipContext context, ItemStack stack) {
-        final ITooltipComponent identifierComponent = new TextTooltipComponent(
+        final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(stack));
         final ItemTitleEnricherEvent event = new ItemTitleEnricherEvent(context, stack.getDisplayName());
 

@@ -5,11 +5,11 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 
-import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.HotkeyEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
@@ -39,7 +39,7 @@ public class HotkeyHelpTextEnricher implements ITooltipEnricher {
     @Override
     public List<ITooltipComponent> build(TooltipContext context) {
 
-        if (!Config.hotkeysEnricherEnabled) {
+        if (!EnricherConfig.hotkeysEnabled || !EnricherConfig.hotkeysHelpTextEnabled) {
             return null;
         }
 
@@ -48,7 +48,7 @@ public class HotkeyHelpTextEnricher implements ITooltipEnricher {
         return component == null ? null : Collections.singletonList(component);
     }
 
-    protected TextTooltipComponent getHotkeysHelpText(TooltipContext context) {
+    protected TextComponent getHotkeysHelpText(TooltipContext context) {
         final HotkeyEnricherEvent event = new HotkeyEnricherEvent(context, new HashMap<>());
         ClientUtil.postEvent(event);
 
@@ -56,7 +56,7 @@ public class HotkeyHelpTextEnricher implements ITooltipEnricher {
         event.hotkeys.remove("");
 
         if (!event.hotkeys.isEmpty() && this.moreText != null) {
-            return new TextTooltipComponent(this.moreText);
+            return new TextComponent(this.moreText);
         }
 
         return null;

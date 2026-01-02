@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 public class ContextInfoEnricher implements ITooltipEnricher {
@@ -35,7 +35,7 @@ public class ContextInfoEnricher implements ITooltipEnricher {
     public List<ITooltipComponent> build(TooltipContext context) {
         final List<ITooltipComponent> lines = new ArrayList<>(context.getContextTooltip());
 
-        if (context.getStack() == null && !lines.isEmpty() && lines.get(0) instanceof TextTooltipComponent) {
+        if (context.getStack() == null && !lines.isEmpty() && lines.get(0) instanceof TextComponent) {
             lines.remove(0);
         }
 

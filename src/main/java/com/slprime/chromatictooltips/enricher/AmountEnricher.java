@@ -12,11 +12,11 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
-import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
@@ -41,11 +41,11 @@ public class AmountEnricher implements ITooltipEnricher {
     public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !Config.stackSizeEnricherEnabled) {
+        if (stack == null || !EnricherConfig.amountEnabled) {
             return null;
         }
 
-        final long stackSize = Config.playerInventoryStackSizeEnabled ? getStackSize(context) : stack.stackSize;
+        final long stackSize = EnricherConfig.playerInventoryAmountEnabled ? getStackSize(context) : stack.stackSize;
         final StackSizeEnricherEvent event = new StackSizeEnricherEvent(context, getFluid(stack), stackSize);
         ClientUtil.postEvent(event);
 
@@ -54,10 +54,10 @@ public class AmountEnricher implements ITooltipEnricher {
         }
 
         if (event.fluid != null) {
-            return Arrays.asList(new TextTooltipComponent(formatFluidAmount(event.fluid.amount * event.stackSize)));
+            return Arrays.asList(new TextComponent(formatFluidAmount(event.fluid.amount * event.stackSize)));
         }
 
-        return Arrays.asList(new TextTooltipComponent(formatStackSize(event.stackSize, stack.getMaxStackSize())));
+        return Arrays.asList(new TextComponent(formatStackSize(event.stackSize, stack.getMaxStackSize())));
     }
 
     protected long getStackSize(TooltipContext context) {

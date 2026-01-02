@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.HotkeyEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
@@ -36,7 +36,7 @@ public class HotkeyEnricher implements ITooltipEnricher {
     @Override
     public List<ITooltipComponent> build(TooltipContext context) {
 
-        if (!Config.hotkeysEnricherEnabled) {
+        if (!EnricherConfig.hotkeysEnabled) {
             return null;
         }
 
@@ -45,7 +45,7 @@ public class HotkeyEnricher implements ITooltipEnricher {
         return component == null ? null : Collections.singletonList(component);
     }
 
-    protected TextTooltipComponent hotkeysListComponent(TooltipContext context) {
+    protected TextComponent hotkeysListComponent(TooltipContext context) {
         final HotkeyEnricherEvent event = new HotkeyEnricherEvent(context, new HashMap<>());
         ClientUtil.postEvent(event);
 
@@ -53,7 +53,7 @@ public class HotkeyEnricher implements ITooltipEnricher {
         event.hotkeys.remove("");
 
         if (!event.hotkeys.isEmpty()) {
-            return new TextTooltipComponent(getHotkeyList(event.hotkeys));
+            return new TextComponent(getHotkeyList(event.hotkeys));
         }
 
         return null;
@@ -79,8 +79,8 @@ public class HotkeyEnricher implements ITooltipEnricher {
         return messages.entrySet()
             .stream()
             .sorted((a, b) -> {
-                String sa = String.join("/", a.getValue());
-                String sb = String.join("/", b.getValue());
+                final String sa = String.join("/", a.getValue());
+                final String sb = String.join("/", b.getValue());
 
                 if (sa.length() != sb.length()) {
                     return Integer.compare(sa.length(), sb.length());

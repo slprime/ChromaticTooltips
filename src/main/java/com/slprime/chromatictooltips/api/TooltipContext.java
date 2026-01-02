@@ -8,17 +8,18 @@ import java.util.List;
 
 import net.minecraft.item.ItemStack;
 
-import com.slprime.chromatictooltips.component.SectionTooltipComponent;
+import com.slprime.chromatictooltips.component.SectionComponent;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
 public class TooltipContext {
 
     protected ItemStack stack;
     protected long animationStartTime;
-    protected String context;
+    protected final String context;
     protected List<ITooltipComponent> contextTooltip = new ArrayList<>();
-    protected List<SectionTooltipComponent> lines = new ArrayList<>();
+    protected List<SectionComponent> lines = new ArrayList<>();
     protected Rectangle anchorBounds = new Rectangle(0, 0, 0, 0);
+    protected ITooltipEnricher.EnricherMode enricherMode = ITooltipEnricher.EnricherMode.DEFAULT;
 
     protected final ITooltipRenderer renderer;
     protected int revision = 0;
@@ -89,25 +90,35 @@ public class TooltipContext {
         return this.stack;
     }
 
+    public ITooltipEnricher.EnricherMode getEnricherMode() {
+        return this.enricherMode;
+    }
+
+    public void setEnricherMode(ITooltipEnricher.EnricherMode enricherMode) {
+        if (this.enricherMode != enricherMode) {
+            this.enricherMode = enricherMode;
+            this.revision++;
+        }
+    }
+
     public List<ITooltipComponent> getContextTooltip() {
         return Collections.unmodifiableList(this.contextTooltip);
     }
 
-    public List<SectionTooltipComponent> getSections() {
+    public List<SectionComponent> getSections() {
         return Collections.unmodifiableList(this.lines);
     }
 
     public void addSection(int index, String sectionId, List<ITooltipComponent> components) {
         if (components == null || components.isEmpty()) return;
         index = Math.max(0, Math.min(index, this.lines.size()));
-        this.lines
-            .add(index, new SectionTooltipComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
+        this.lines.add(index, new SectionComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
         this.revision++;
     }
 
     public void addSection(String sectionId, List<ITooltipComponent> components) {
         if (components == null || components.isEmpty()) return;
-        this.lines.add(new SectionTooltipComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
+        this.lines.add(new SectionComponent(sectionId, this.renderer.getSectionBox(sectionId), components));
         this.revision++;
     }
 

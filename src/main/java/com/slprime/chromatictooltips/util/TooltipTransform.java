@@ -10,8 +10,8 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.TooltipStyle;
+import com.slprime.chromatictooltips.config.GeneralConfig;
 
 public class TooltipTransform {
 
@@ -117,7 +117,7 @@ public class TooltipTransform {
     }
 
     public boolean isAnimated() {
-        return Config.transformEnabled && this.keyframes.size() > 1;
+        return GeneralConfig.transformEnabled && this.keyframes.size() > 1;
     }
 
     public void pushTransformMatrix(double x, double y, double width, double height, long lastFrameTime) {

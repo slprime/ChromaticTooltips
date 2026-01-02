@@ -4,12 +4,12 @@ import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
-public class DividerTooltipComponent extends SpaceTooltipComponent {
+public class DividerComponent extends SpaceComponent {
 
     protected int colorCodeIndex = -1;
     protected int marginLeft = 0;
 
-    public DividerTooltipComponent(SpaceTooltipComponent space, int marginLeft, int colorCodeIndex) {
+    public DividerComponent(SpaceComponent space, int marginLeft, int colorCodeIndex) {
         super(space);
         this.colorCodeIndex = colorCodeIndex;
         this.marginLeft = marginLeft;

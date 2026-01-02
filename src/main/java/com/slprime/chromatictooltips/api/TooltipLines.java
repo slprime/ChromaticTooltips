@@ -10,12 +10,11 @@ import java.util.regex.Pattern;
 import net.minecraft.util.EnumChatFormatting;
 
 import com.slprime.chromatictooltips.TooltipHandler;
-import com.slprime.chromatictooltips.component.DividerTooltipComponent;
-import com.slprime.chromatictooltips.component.ParagraphTooltipComponent;
-import com.slprime.chromatictooltips.component.SpaceTooltipComponent;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.DividerComponent;
+import com.slprime.chromatictooltips.component.ParagraphComponent;
+import com.slprime.chromatictooltips.component.SpaceComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.event.TextLinesConverterEvent;
-import com.slprime.chromatictooltips.util.BlacklistLines;
 import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
@@ -23,17 +22,16 @@ public class TooltipLines {
 
     protected static final Pattern DIVIDER_PATTERN = Pattern
         .compile("^(\\s*)(?:§[0-9a-fk-or])*§([0-9a-f])(?:§[0-9a-fk-or])*-{3,}(?:§r)?$", Pattern.CASE_INSENSITIVE);
-    protected static final Pattern COLOR_CODES_PATTERN = Pattern.compile("^\\s*§[0-9A-F]", Pattern.CASE_INSENSITIVE);
-    protected static final String BASE_CODE = EnumChatFormatting.GRAY.toString();
-    protected static final int DEFAULT_SPACING = 4;
+    public static final EnumChatFormatting BASE_COLOR = EnumChatFormatting.GRAY;
     protected static final String HEADER_SUFFIX = "§h";
+    protected static final int HEADER_SPACING = 4;
 
     private final List<Object> textLines = new ArrayList<>();
 
     public TooltipLines() {}
 
     public TooltipLines(List<?> lines) {
-        this.textLines.addAll(lines);
+        lines(lines);
     }
 
     public TooltipLines header(String line) {
@@ -55,8 +53,16 @@ public class TooltipLines {
         return lines(Arrays.asList(lines));
     }
 
-    public TooltipLines lines(List<String> lines) {
-        this.textLines.addAll(lines);
+    public TooltipLines lines(List<?> lines) {
+
+        if (lines != null) {
+            for (Object line : lines) {
+                if (line != null) {
+                    this.textLines.add(line);
+                }
+            }
+        }
+
         return this;
     }
 
@@ -85,56 +91,46 @@ public class TooltipLines {
             if (line instanceof ITooltipComponent component) {
                 results.add(component);
             } else if ("".equals(line)) {
-                results.add(new ParagraphTooltipComponent());
-            } else if (line instanceof String str
-                && !BlacklistLines.test(EnumChatFormatting.getTextWithoutFormattingCodes(str))) {
-                    final Matcher matcher = DIVIDER_PATTERN.matcher(str);
+                results.add(new ParagraphComponent());
+            } else if (line instanceof String str && !ClientUtil.isBlacklistedLine(str)) {
+                final Matcher matcher = DIVIDER_PATTERN.matcher(str);
 
-                    if (matcher.matches()) {
-                        final String colorCode = matcher.group(2);
-                        final int colorCodeIndex = "0123456789abcdef".indexOf(colorCode.toLowerCase());
-                        final int marginLeft = TooltipFontContext.getStringWidth(matcher.group(1));
+                if (matcher.matches()) {
+                    final String colorCode = matcher.group(2);
+                    final int colorCodeIndex = "0123456789abcdef".indexOf(colorCode.toLowerCase());
+                    final int marginLeft = TooltipFontContext.getStringWidth(matcher.group(1));
 
-                        results.add(
-                            new DividerTooltipComponent(renderer.getSpacing("divider"), marginLeft, colorCodeIndex));
-                    } else if (str.endsWith(HEADER_SUFFIX)) {
-                        results.add(
-                            new TextTooltipComponent(
-                                prepareTextBaseColor(str.substring(0, str.length() - HEADER_SUFFIX.length())),
-                                DEFAULT_SPACING));
-                    } else {
-                        ITooltipComponent component = TooltipHandler.getTooltipComponent(str);
+                    results.add(new DividerComponent(renderer.getSpacing("divider"), marginLeft, colorCodeIndex));
+                } else if (str.endsWith(HEADER_SUFFIX)) {
+                    results.add(
+                        new TextComponent(
+                            ClientUtil.applyBaseColorIfAbsent(
+                                str.substring(0, str.length() - HEADER_SUFFIX.length()),
+                                BASE_COLOR),
+                            HEADER_SPACING));
+                } else {
+                    ITooltipComponent component = TooltipHandler.getTooltipComponent(str);
 
-                        if (component == null) {
-                            component = new TextTooltipComponent(prepareTextBaseColor(str));
-                        }
-
-                        results.add(component);
+                    if (component == null) {
+                        component = new TextComponent(ClientUtil.applyBaseColorIfAbsent(str, BASE_COLOR));
                     }
 
+                    results.add(component);
                 }
+
+            }
 
         }
 
-        while (!results.isEmpty() && results.get(0) instanceof SpaceTooltipComponent) {
+        while (!results.isEmpty() && results.get(0) instanceof SpaceComponent) {
             results.remove(0);
         }
 
-        while (!results.isEmpty() && results.get(results.size() - 1) instanceof SpaceTooltipComponent) {
+        while (!results.isEmpty() && results.get(results.size() - 1) instanceof SpaceComponent) {
             results.remove(results.size() - 1);
         }
 
         return results;
-    }
-
-    public static String prepareTextBaseColor(String str) {
-
-        if (!TooltipLines.COLOR_CODES_PATTERN.matcher(str)
-            .find()) {
-            return TooltipLines.BASE_CODE + str;
-        }
-
-        return str;
     }
 
     public boolean isEmpty() {
@@ -178,4 +174,5 @@ public class TooltipLines {
 
         return true;
     }
+
 }

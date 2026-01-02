@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 import cpw.mods.fml.common.Loader;
@@ -51,18 +51,18 @@ public class ModInfoEnricher implements ITooltipEnricher {
         final UniqueIdentifier identifier = getIdentifier(stack);
         final String modname = nameFromStack(identifier);
 
-        if (ClientUtil.controlKey() && ClientUtil.mc().gameSettings.advancedItemTooltips) {
+        if (ClientUtil.isCtrlKeyDown() && ClientUtil.mc().gameSettings.advancedItemTooltips) {
             final boolean modnameEqualsModId = modname.replaceAll("\\s+", "")
                 .equalsIgnoreCase(identifier.modId.replaceAll("\\s+", ""));
 
             components.add(
-                new TextTooltipComponent(
+                new TextComponent(
                     ClientUtil.translate(
                         "enricher.modinfo.identifier",
                         modnameEqualsModId ? modname : identifier.modId,
                         identifier.name)));
         } else {
-            components.add(new TextTooltipComponent(ClientUtil.translate("enricher.modinfo.modname", modname)));
+            components.add(new TextComponent(ClientUtil.translate("enricher.modinfo.modname", modname)));
         }
 
         return components;

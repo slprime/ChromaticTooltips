@@ -7,11 +7,11 @@ import java.util.List;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-import com.slprime.chromatictooltips.Config;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 public class OreDictionaryEnricher implements ITooltipEnricher {
@@ -41,7 +41,7 @@ public class OreDictionaryEnricher implements ITooltipEnricher {
     public List<ITooltipComponent> build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !Config.oreDictionaryEnricherEnabled) {
+        if (stack == null || !EnricherConfig.oreDictionaryEnabled) {
             return null;
         }
 
@@ -49,12 +49,12 @@ public class OreDictionaryEnricher implements ITooltipEnricher {
 
         for (int oredict : OreDictionary.getOreIDs(stack)) {
             components.add(
-                new TextTooltipComponent(
+                new TextComponent(
                     ClientUtil.translate("enricher.oreDictionary.entry", OreDictionary.getOreName(oredict))));
         }
 
         if (!components.isEmpty()) {
-            components.add(0, new TextTooltipComponent(this.titleComponent));
+            components.add(0, new TextComponent(this.titleComponent));
         }
 
         return components;

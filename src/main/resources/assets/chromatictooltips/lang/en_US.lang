@@ -21,6 +21,19 @@ chromatictooltips.enricher.hotkeys.keybind.keys=§7 / §6
 chromatictooltips.enricher.oreDictionary.title=§7Ore Dictionary Names:
 chromatictooltips.enricher.oreDictionary.entry=§8 - §e%s
 
+chromatictooltips.enricher.attributes.durability.text=§7Durability: %s / %s
+chromatictooltips.enricher.attributes.durability.icon=%s§7 / %s
+
+chromatictooltips.enricher.attributes.armor.text=§7Protection: %s
+chromatictooltips.enricher.attributes.armor.icon=%s
+
+chromatictooltips.enricher.attributes.plus.0=%d
+chromatictooltips.enricher.attributes.plus.1=+%d%%
+chromatictooltips.enricher.attributes.plus.2=+%d%%
+chromatictooltips.enricher.attributes.take.0=-%d
+chromatictooltips.enricher.attributes.take.1=-%d%%
+chromatictooltips.enricher.attributes.take.2=-%d%%
+
 nei.options.inventory.hotkeysHelpText=Show Hotkeys Help Text
 nei.options.inventory.hotkeysHelpText.true=Yes
 nei.options.inventory.hotkeysHelpText.false=No

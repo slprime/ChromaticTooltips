@@ -13,11 +13,13 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 @Mod(
     modid = ChromaticTooltips.MODID,
     version = Tags.VERSION,
-    name = "ChromaticTooltips",
+    name = ChromaticTooltips.NAME,
+    guiFactory = "com.slprime.chromatictooltips.config.ChromaticGuiConfigFactory",
     acceptedMinecraftVersions = "[1.7.10]")
 public class ChromaticTooltips {
 
     public static final String MODID = "chromatictooltips";
+    public static final String NAME = "ChromaticTooltips";
     public static final Logger LOG = LogManager.getLogger(MODID);
 
     @SidedProxy(

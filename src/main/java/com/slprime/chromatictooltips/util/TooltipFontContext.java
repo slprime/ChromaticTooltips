@@ -35,6 +35,9 @@ public class TooltipFontContext {
         }
     }
 
+    public static final int LINE_SPACE = 1;
+    public static final int DEFAULT_SPACING = 2;
+
     protected static FontRenderer fontRenderer = null;
     protected static final int INHERIT_COLOR = 0x00000000;
     protected static final String[] colorOrders = new String[] { "black", "dark_blue", "dark_green", "dark_aqua",
@@ -74,17 +77,18 @@ public class TooltipFontContext {
 
                 if (element.isJsonArray()) {
                     final int[] colors = colorStyle.getAsColors(key, new int[] { INHERIT_COLOR });
+                    final int color = colors[0] & 0x00FFFFFF;
 
-                    this.customColors[i] = colors[0];
+                    this.customColors[i] = color;
 
                     if (colors.length == 1) {
-                        this.customColors[i + 16] = (colors[0] & 16579836) >> 2 | colors[0] & -16777216;
+                        this.customColors[i + 16] = (color & 16579836) >> 2 | color & -16777216;
                     } else {
-                        this.customColors[i + 16] = colors[1];
+                        this.customColors[i + 16] = colors[1] & 0x00FFFFFF;
                     }
 
                 } else if (element.isJsonPrimitive()) {
-                    final int color = colorStyle.getAsColor(key, INHERIT_COLOR);
+                    final int color = colorStyle.getAsColor(key, INHERIT_COLOR) & 0x00FFFFFF;
 
                     this.customColors[i] = color;
                     this.customColors[i + 16] = (color & 16579836) >> 2 | color & -16777216;
@@ -125,6 +129,10 @@ public class TooltipFontContext {
         return context().colors[index];
     }
 
+    public static int getColorShadow(int index) {
+        return context().colors[index + 16];
+    }
+
     public static int getParagraphSpacing() {
         return context().paragraph;
     }
@@ -136,6 +144,10 @@ public class TooltipFontContext {
         }
 
         return TooltipFontContext.fontRenderer;
+    }
+
+    public static int getFontHeight() {
+        return getFontRenderer().FONT_HEIGHT + LINE_SPACE;
     }
 
     public static int getStringWidth(String text) {

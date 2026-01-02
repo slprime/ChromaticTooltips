@@ -8,10 +8,7 @@ import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
-public class TextTooltipComponent implements ITooltipComponent {
-
-    protected static final int LINE_SPACE = 1;
-    protected static final int DEFAULT_SPACING = 2;
+public class TextComponent implements ITooltipComponent {
 
     protected List<String> textLines = null;
     protected int spacing = 2;
@@ -19,7 +16,7 @@ public class TextTooltipComponent implements ITooltipComponent {
     protected int width = 0;
     protected int height = 0;
 
-    public TextTooltipComponent(List<String> textLines, int spacing) {
+    public TextComponent(List<String> textLines, int spacing) {
         this.textLines = textLines;
         this.spacing = spacing;
 
@@ -27,19 +24,19 @@ public class TextTooltipComponent implements ITooltipComponent {
             this.width = Math.max(this.width, TooltipFontContext.getStringWidth(line));
         }
 
-        this.height = textLines.size() * (TooltipFontContext.getFontRenderer().FONT_HEIGHT + LINE_SPACE) - this.spacing;
+        this.height = textLines.size() * TooltipFontContext.getFontHeight() - this.spacing;
     }
 
-    public TextTooltipComponent(List<String> textLines) {
-        this(textLines, DEFAULT_SPACING);
+    public TextComponent(List<String> textLines) {
+        this(textLines, TooltipFontContext.DEFAULT_SPACING);
     }
 
-    public TextTooltipComponent(String text, int spacing) {
+    public TextComponent(String text, int spacing) {
         this(Arrays.asList(text), spacing);
     }
 
-    public TextTooltipComponent(String text) {
-        this(Arrays.asList(text), DEFAULT_SPACING);
+    public TextComponent(String text) {
+        this(Arrays.asList(text));
     }
 
     public List<String> getLines() {
@@ -48,8 +45,7 @@ public class TextTooltipComponent implements ITooltipComponent {
 
     @Override
     public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
-        final int linesPerPage = Math
-            .max(1, maxHeight / (TooltipFontContext.getFontRenderer().FONT_HEIGHT + LINE_SPACE));
+        final int linesPerPage = Math.max(1, maxHeight / TooltipFontContext.getFontHeight());
         final List<String> lines = new ArrayList<>();
 
         for (String line : this.textLines) {
@@ -69,7 +65,7 @@ public class TextTooltipComponent implements ITooltipComponent {
     }
 
     protected ITooltipComponent createInstance(List<String> lines) {
-        return new TextTooltipComponent(lines, spacing);
+        return new TextComponent(lines, spacing);
     }
 
     @Override
@@ -89,7 +85,7 @@ public class TextTooltipComponent implements ITooltipComponent {
 
     @Override
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
-        final int lineHeight = TooltipFontContext.getFontRenderer().FONT_HEIGHT + LINE_SPACE;
+        final int lineHeight = TooltipFontContext.getFontHeight();
 
         for (String line : this.textLines) {
             context.drawString(line, x, y);

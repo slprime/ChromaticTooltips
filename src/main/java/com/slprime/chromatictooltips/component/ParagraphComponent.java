@@ -4,9 +4,9 @@ import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
-public class ParagraphTooltipComponent extends SpaceTooltipComponent {
+public class ParagraphComponent extends SpaceComponent {
 
-    public ParagraphTooltipComponent() {
+    public ParagraphComponent() {
         super(6);
     }
 

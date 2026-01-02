@@ -1,17 +1,16 @@
 package com.slprime.chromatictooltips;
 
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 
@@ -19,14 +18,18 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipStyle;
-import com.slprime.chromatictooltips.component.SectionTooltipComponent;
-import com.slprime.chromatictooltips.component.SpaceTooltipComponent;
-import com.slprime.chromatictooltips.component.TextTooltipComponent;
+import com.slprime.chromatictooltips.component.SectionComponent;
+import com.slprime.chromatictooltips.component.SpaceComponent;
+import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.GeneralConfig;
 import com.slprime.chromatictooltips.event.RenderTooltipEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.ItemStackFilterParser;
@@ -59,12 +62,15 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         public int getNavigationHeight() {
-            return this.navigationBox.getBlock() + TooltipFontContext.getFontRenderer().FONT_HEIGHT;
+            return this.navigationBox.getBlock() + TooltipFontContext.getFontHeight()
+                - TooltipFontContext.DEFAULT_SPACING;
         }
     }
 
     protected Map<String, SectionBox> sectionBoxCache = new HashMap<>();
-    protected Map<String, SpaceTooltipComponent> spacingCache = new HashMap<>();
+    protected Map<String, SpaceComponent> spacingCache = new HashMap<>();
+    protected Map<String, EnumSet<EnricherMode>> enricherModesCache = new HashMap<>();
+    protected Map<String, EnricherPlace> enricherPlaceCache = new HashMap<>();
 
     protected int mainAxisOffset = 6;
     protected int crossAxisOffset = -18;
@@ -73,10 +79,11 @@ public class TooltipRenderer implements ITooltipRenderer {
     protected TooltipContext lastContext = null;
     protected int lastRevision = 0;
 
-    protected SectionTooltipComponent pagedTooltipComponent = null;
+    protected SectionComponent pagedTooltipComponent = null;
     protected int currentPage = 0;
     protected int totalPages = 0;
     protected Point lastPosition = null;
+    protected float guiScaleFactor = 0;
 
     protected Predicate<ItemStack> filter;
     protected TooltipStyle tooltipStyle;
@@ -87,16 +94,18 @@ public class TooltipRenderer implements ITooltipRenderer {
         this.tooltipStyle = style;
 
         if (!style.containsKey("divider")) {
-            this.spacingCache.put("divider", new SpaceTooltipComponent(new TooltipStyle(createDefaultDivider())));
+            this.spacingCache.put("divider", new SpaceComponent(new TooltipStyle(createDefaultDivider())));
         }
 
         final int[] offset = style.getAsProperty(
             "offset",
-            new String[][] { new String[] { "main" }, new String[] { "cross" }, },
+            new String[][] { new String[] { "main" }, new String[] { "cross" } },
             new int[] { this.mainAxisOffset, this.crossAxisOffset });
 
         this.mainAxisOffset = offset[0];
         this.crossAxisOffset = offset[1];
+
+        generateEnricherCaches();
     }
 
     protected JsonObject createDefaultDivider() {
@@ -112,6 +121,43 @@ public class TooltipRenderer implements ITooltipRenderer {
         return dividerStyle;
     }
 
+    protected void generateEnricherCaches() {
+        final JsonObject sections = this.tooltipStyle.getAsJsonObject("sections", new JsonObject());
+
+        for (Map.Entry<String, JsonElement> entry : sections.entrySet()) {
+            if (entry.getValue() == null || !entry.getValue()
+                .isJsonObject()) {
+                continue;
+            }
+
+            final String sectionId = entry.getKey();
+            final JsonObject section = entry.getValue()
+                .getAsJsonObject();
+
+            if (section.has("modes")) {
+                final EnumSet<EnricherMode> values = EnumSet.noneOf(EnricherMode.class);
+
+                for (JsonElement modeElement : section.getAsJsonArray("modes")) {
+                    final String mode = modeElement.getAsString();
+                    if (mode != null && !mode.isEmpty()) {
+                        values.add(EnricherMode.fromString(mode));
+                    }
+                }
+
+                this.enricherModesCache.put(sectionId, values);
+            }
+
+            if (section.has("place")) {
+                this.enricherPlaceCache.put(
+                    sectionId,
+                    EnricherPlace.fromString(
+                        section.get("place")
+                            .getAsString()));
+            }
+        }
+
+    }
+
     @Override
     public boolean matches(ItemStack stack) {
         return this.filter == null || this.filter.test(stack);
@@ -122,14 +168,22 @@ public class TooltipRenderer implements ITooltipRenderer {
         return this.tooltipStyle;
     }
 
+    public EnumSet<EnricherMode> getEnricherModes(String enricherId, EnumSet<EnricherMode> defaultModes) {
+        return this.enricherModesCache.getOrDefault(enricherId, defaultModes);
+    }
+
+    public EnricherPlace getEnricherPlace(String enricherId, EnricherPlace defaultPlace) {
+        return this.enricherPlaceCache.getOrDefault(enricherId, defaultPlace);
+    }
+
     @Override
     public SectionBox getSectionBox(String path) {
         return this.sectionBoxCache.computeIfAbsent(path, p -> new SectionBox(this.tooltipStyle.getAsStyle(p)));
     }
 
     @Override
-    public SpaceTooltipComponent getSpacing(String path) {
-        return this.spacingCache.computeIfAbsent(path, p -> new SpaceTooltipComponent(this.tooltipStyle.getAsStyle(p)));
+    public SpaceComponent getSpacing(String path) {
+        return this.spacingCache.computeIfAbsent(path, p -> new SpaceComponent(this.tooltipStyle.getAsStyle(p)));
     }
 
     @Override
@@ -156,7 +210,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         return false;
     }
 
-    protected List<ITooltipComponent> prepareComponents(List<SectionTooltipComponent> components) {
+    protected List<ITooltipComponent> prepareComponents(List<SectionComponent> components) {
         final List<ITooltipComponent> result = new ArrayList<>(components);
 
         if (result.size() > 1 && getSpacing("hr").getHeight() > 0) {
@@ -166,15 +220,14 @@ public class TooltipRenderer implements ITooltipRenderer {
         return result;
     }
 
-    protected List<SectionTooltipComponent> paginateComponents(SectionTooltipComponent component, int maxWidth,
-        int maxHeight) {
+    protected List<SectionComponent> paginateComponents(SectionComponent component, int maxWidth, int maxHeight) {
         maxWidth = Math
             .max(Math.min(this.tooltipSectionBox.getMaxWidth(), maxWidth), this.tooltipSectionBox.getMinWidth());
         maxHeight = Math.max(maxHeight, this.tooltipSectionBox.getMinHeight());
 
-        final List<SectionTooltipComponent> pages = new ArrayList<>();
+        final List<SectionComponent> pages = new ArrayList<>();
         ITooltipComponent[] split = component.paginate(this.lastContext, maxWidth, maxHeight);
-        final SectionTooltipComponent firstPage = (SectionTooltipComponent) split[0];
+        final SectionComponent firstPage = (SectionComponent) split[0];
         final int paginationHeight = this.tooltipSectionBox.getNavigationHeight();
 
         if (split.length == 1) {
@@ -183,10 +236,10 @@ public class TooltipRenderer implements ITooltipRenderer {
 
         while (component != null) {
             split = component.paginate(this.lastContext, maxWidth, maxHeight - paginationHeight);
-            pages.add((SectionTooltipComponent) split[0]);
+            pages.add((SectionComponent) split[0]);
 
             if (split.length > 1) {
-                component = (SectionTooltipComponent) split[1];
+                component = (SectionComponent) split[1];
             } else {
                 component = null;
             }
@@ -196,7 +249,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         return pages;
     }
 
-    protected void addNavigation(SectionTooltipComponent component, int currentPage, int totalPages) {
+    protected void addNavigation(SectionComponent component, int currentPage, int totalPages) {
         final int nextKeyCode = ClientProxy.nextPage.getKeyCode();
         final int previousKeyCode = ClientProxy.previousPage.getKeyCode();
         final String nextKey = nextKeyCode != 0 ? Keyboard.getKeyName(nextKeyCode) : "";
@@ -214,10 +267,10 @@ public class TooltipRenderer implements ITooltipRenderer {
         if (!text.isEmpty()) {
             component.clearPendingComponent();
             component.addComponent(
-                new SectionTooltipComponent(
+                new SectionComponent(
                     "navigation",
                     this.tooltipSectionBox.navigationBox,
-                    Collections.singletonList(new TextTooltipComponent(text))));
+                    Collections.singletonList(new TextComponent(text))));
         }
     }
 
@@ -254,16 +307,19 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         if (this.lastPosition == null) {
-            final Dimension freeSpace = displaySize();
-            final int maxWidth = freeSpace.width - this.tooltipSectionBox.getInline();
-            final int maxHeight = freeSpace.height - this.tooltipSectionBox.getBlock();
+            final Minecraft mc = ClientUtil.mc();
+            final float tooltipScale = GeneralConfig.scaleFactor == 0 ? ClientUtil.getScaledResolution()
+                .getScaleFactor() : GeneralConfig.scaleFactor;
+            this.guiScaleFactor = tooltipScale / ClientUtil.getScaledResolution()
+                .getScaleFactor();
+            final int scaledWidth = (int) Math.ceil(mc.displayWidth / tooltipScale);
+            final int scaledHeight = (int) Math.ceil(mc.displayHeight / tooltipScale);
 
             final List<ITooltipComponent> components = prepareComponents(this.lastContext.getSections());
-
-            final List<SectionTooltipComponent> pages = paginateComponents(
-                new SectionTooltipComponent("page", this.tooltipSectionBox, components),
-                maxWidth,
-                maxHeight);
+            final List<SectionComponent> pages = paginateComponents(
+                new SectionComponent("page", this.tooltipSectionBox, components),
+                scaledWidth - this.tooltipSectionBox.getInline(),
+                scaledHeight - this.tooltipSectionBox.getBlock());
 
             this.totalPages = pages.size();
             this.currentPage = Math.max(0, Math.min(this.currentPage, this.totalPages - 1));
@@ -276,8 +332,9 @@ public class TooltipRenderer implements ITooltipRenderer {
             this.lastPosition = prepareTooltipPosition(
                 this.pagedTooltipComponent.getWidth(),
                 this.pagedTooltipComponent.getHeight(),
-                this.lastContext.getAnchorBounds(),
-                freeSpace);
+                scaleAnchorBounds(this.lastContext.getAnchorBounds(), this.guiScaleFactor),
+                scaledWidth,
+                scaledHeight);
         }
 
         if (!this.pagedTooltipComponent.isEmpty()) {
@@ -286,28 +343,36 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
     }
 
-    protected Dimension displaySize() {
-        Minecraft mc = ClientUtil.mc();
-        ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        return new Dimension(res.getScaledWidth(), res.getScaledHeight());
+    protected Rectangle scaleAnchorBounds(Rectangle anchorBounds, float scaleFactor) {
+        return new Rectangle(
+            (int) Math.ceil(anchorBounds.x / scaleFactor),
+            (int) Math.ceil(anchorBounds.y / scaleFactor),
+            (int) Math.ceil(anchorBounds.width / scaleFactor),
+            (int) Math.ceil(anchorBounds.height / scaleFactor));
     }
 
     protected void drawContent() {
+        GL11.glPushMatrix();
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         ClientUtil.incZLevel(DEFAULT_Z_INDEX);
 
-        this.pagedTooltipComponent
-            .draw(this.lastPosition.x, this.lastPosition.y, this.pagedTooltipComponent.getWidth(), this.lastContext);
+        GL11.glTranslatef(this.lastPosition.x * this.guiScaleFactor, this.lastPosition.y * this.guiScaleFactor, 0);
+        GL11.glScalef(this.guiScaleFactor, this.guiScaleFactor, 1);
+
+        this.pagedTooltipComponent.draw(0, 0, this.pagedTooltipComponent.getWidth(), this.lastContext);
+
+        GL11.glScalef(1 / this.guiScaleFactor, 1 / this.guiScaleFactor, 1);
 
         ClientUtil.incZLevel(-DEFAULT_Z_INDEX);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         RenderHelper.enableStandardItemLighting();
+        GL11.glPopMatrix();
     }
 
-    protected Point prepareTooltipPosition(int width, int height, Rectangle anchor, Dimension freeSpace) {
+    protected Point prepareTooltipPosition(int width, int height, Rectangle anchor, int scaledWidth, int scaledHeight) {
         final int offsetMain = anchor.width == 0 && anchor.height == 0 ? this.mainAxisOffset : 0;
         final int offsetCross = anchor.width == 0 && anchor.height == 0 ? this.crossAxisOffset : 0;
         final Point rightPoint = new Point(anchor.x + anchor.width + offsetMain, anchor.y + offsetCross);
@@ -315,34 +380,34 @@ public class TooltipRenderer implements ITooltipRenderer {
         final Point topPoint = new Point(anchor.x + offsetCross, anchor.y - height - offsetMain);
         final Point bottomPoint = new Point(anchor.x + offsetCross, anchor.y + anchor.height + offsetMain);
 
-        if (rightPoint.x + width <= freeSpace.width) {
-            rightPoint.y = clamp(rightPoint.y, 0, freeSpace.height - height);
+        if (rightPoint.x + width <= scaledWidth) {
+            rightPoint.y = clamp(rightPoint.y, 0, scaledHeight - height);
             return rightPoint;
         }
 
         if (leftPoint.x >= 0) {
-            leftPoint.y = clamp(leftPoint.y, 0, freeSpace.height - height);
+            leftPoint.y = clamp(leftPoint.y, 0, scaledHeight - height);
             return leftPoint;
         }
 
-        if (bottomPoint.y + height <= freeSpace.height) {
-            bottomPoint.x = clamp(bottomPoint.x, 0, freeSpace.width - width);
+        if (bottomPoint.y + height <= scaledHeight) {
+            bottomPoint.x = clamp(bottomPoint.x, 0, scaledWidth - width);
             return bottomPoint;
         }
 
         if (topPoint.y >= 0) {
-            topPoint.x = clamp(topPoint.x, 0, freeSpace.width - width);
+            topPoint.x = clamp(topPoint.x, 0, scaledWidth - width);
             return topPoint;
         }
 
         // more space on right side
-        if (anchor.x < freeSpace.width - anchor.x - anchor.width) {
-            rightPoint.y = clamp(rightPoint.y, 0, freeSpace.height - height);
-            rightPoint.x = clamp(rightPoint.x, 0, freeSpace.width - width);
+        if (anchor.x < scaledWidth - anchor.x - anchor.width) {
+            rightPoint.y = clamp(rightPoint.y, 0, scaledHeight - height);
+            rightPoint.x = clamp(rightPoint.x, 0, scaledWidth - width);
             return rightPoint;
         } else {
-            leftPoint.y = clamp(leftPoint.y, 0, freeSpace.height - height);
-            leftPoint.x = clamp(leftPoint.x, 0, freeSpace.width - width);
+            leftPoint.y = clamp(leftPoint.y, 0, scaledHeight - height);
+            leftPoint.x = clamp(leftPoint.x, 0, scaledWidth - width);
             return leftPoint;
         }
 

@@ -1,10 +1,13 @@
 package com.slprime.chromatictooltips.api;
 
 import java.awt.Rectangle;
+import java.util.EnumSet;
 
 import net.minecraft.item.ItemStack;
 
-import com.slprime.chromatictooltips.component.SpaceTooltipComponent;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
+import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherPlace;
+import com.slprime.chromatictooltips.component.SpaceComponent;
 import com.slprime.chromatictooltips.util.SectionBox;
 
 public interface ITooltipRenderer {
@@ -15,7 +18,11 @@ public interface ITooltipRenderer {
 
     public SectionBox getSectionBox(String path);
 
-    public SpaceTooltipComponent getSpacing(String path);
+    public SpaceComponent getSpacing(String path);
+
+    public EnumSet<EnricherMode> getEnricherModes(String enricherId, EnumSet<EnricherMode> defaultModes);
+
+    public EnricherPlace getEnricherPlace(String enricherId, EnricherPlace defaultPlace);
 
     public boolean matches(ItemStack stack);
 

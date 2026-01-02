@@ -9,19 +9,19 @@ import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.util.SectionBox;
 
-public class SectionTooltipComponent extends SectionBox {
+public class SectionComponent extends SectionBox {
 
     protected List<ITooltipComponent> components = new ArrayList<>();
     protected ITooltipComponent pendingComponent = null;
     protected String sectionId = null;
 
-    public SectionTooltipComponent(String sectionId, SectionBox box, List<ITooltipComponent> components) {
+    public SectionComponent(String sectionId, SectionBox box, List<ITooltipComponent> components) {
         super(box);
         this.sectionId = sectionId;
         addAllComponents(components);
     }
 
-    public SectionTooltipComponent(String sectionId, TooltipStyle style, List<ITooltipComponent> components) {
+    public SectionComponent(String sectionId, TooltipStyle style, List<ITooltipComponent> components) {
         super(style);
         this.sectionId = sectionId;
         addAllComponents(components);
@@ -46,7 +46,7 @@ public class SectionTooltipComponent extends SectionBox {
             return;
         }
 
-        if (component instanceof SpaceTooltipComponent) {
+        if (component instanceof SpaceComponent) {
             this.pendingComponent = component;
             return;
         }
@@ -72,7 +72,7 @@ public class SectionTooltipComponent extends SectionBox {
     }
 
     protected int getEffectiveMarginAfter(ITooltipComponent curr, ITooltipComponent next) {
-        return (next == null || next instanceof SpaceTooltipComponent) ? 0 : curr.getSpacing();
+        return (next == null || next instanceof SpaceComponent) ? 0 : curr.getSpacing();
     }
 
     public List<ITooltipComponent> getComponents() {
@@ -87,7 +87,6 @@ public class SectionTooltipComponent extends SectionBox {
     public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
         final List<ITooltipComponent> firstPage = new ArrayList<>();
         final List<ITooltipComponent> secondPage = new ArrayList<>();
-        boolean firstPageIsEmpty = true;
         int lastSpacing = 0;
         int currentHeight = 0;
 
@@ -104,26 +103,20 @@ public class SectionTooltipComponent extends SectionBox {
         for (ITooltipComponent component : this.components) {
             final int remainingHeight = maxHeight - currentHeight - lastSpacing;
 
-            if (firstPageIsEmpty || remainingHeight > 0) {
+            if (firstPage.isEmpty() && component instanceof SpaceComponent) {
+                continue;
+            }
+
+            if (secondPage.isEmpty() && (remainingHeight > 0 || firstPage.isEmpty())) {
                 final ITooltipComponent[] split = component.paginate(context, maxWidth, remainingHeight);
                 final ITooltipComponent firstComponent = split[0];
                 final int compHeight = firstComponent.getHeight();
 
-                if (firstPageIsEmpty || remainingHeight >= compHeight) {
-
-                    if (firstComponent instanceof SpaceTooltipComponent) {
-                        lastSpacing = 0;
-                        if (firstPageIsEmpty || firstPage.get(firstPage.size() - 1) instanceof SpaceTooltipComponent) {
-                            continue;
-                        }
-                    }
-
+                if (firstPage.isEmpty() || remainingHeight >= compHeight) {
                     currentHeight += compHeight + lastSpacing;
                     lastSpacing = firstComponent.getSpacing();
                     firstPage.add(firstComponent);
-                    firstPageIsEmpty = false;
                 } else {
-                    currentHeight += compHeight;
                     secondPage.add(firstComponent);
                 }
 
@@ -131,7 +124,7 @@ public class SectionTooltipComponent extends SectionBox {
                     secondPage.add(split[1]);
                 }
 
-            } else {
+            } else if (!(component instanceof SpaceComponent)) {
                 secondPage.add(component);
             }
         }
@@ -146,7 +139,7 @@ public class SectionTooltipComponent extends SectionBox {
     }
 
     protected ITooltipComponent createInstance(List<ITooltipComponent> components) {
-        return new SectionTooltipComponent(this.sectionId, this, components);
+        return new SectionComponent(this.sectionId, this, components);
     }
 
     @Override

@@ -6,14 +6,14 @@ import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.util.TooltipDecoratorCollection;
 import com.slprime.chromatictooltips.util.TooltipTransform;
 
-public class SpaceTooltipComponent implements ITooltipComponent {
+public class SpaceComponent implements ITooltipComponent {
 
     protected TooltipDecoratorCollection decorators;
     protected TooltipTransform transform;
     protected int mixColor = 0xFFFFFFFF;
     protected int height;
 
-    public SpaceTooltipComponent(TooltipStyle style) {
+    public SpaceComponent(TooltipStyle style) {
         this.decorators = style.getDecoratorCollection();
         this.height = style.getAsInt("height", 0);
 
@@ -22,11 +22,11 @@ public class SpaceTooltipComponent implements ITooltipComponent {
         }
     }
 
-    public SpaceTooltipComponent(int height) {
+    public SpaceComponent(int height) {
         this.height = height;
     }
 
-    public SpaceTooltipComponent(SpaceTooltipComponent space) {
+    public SpaceComponent(SpaceComponent space) {
         this.height = space.height;
         this.decorators = space.decorators;
         this.transform = space.transform;
