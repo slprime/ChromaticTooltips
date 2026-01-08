@@ -50,7 +50,7 @@ public class ItemStackFilterParser {
         public boolean test(T t) {
             try {
                 return this.predicate.test(t);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 return false;
             }
         }
