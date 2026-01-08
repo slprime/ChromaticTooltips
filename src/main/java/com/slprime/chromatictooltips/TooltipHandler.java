@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -18,17 +19,19 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
-import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
-import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
 import com.slprime.chromatictooltips.api.TooltipBuilder;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipRequest;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.component.SectionComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
+import com.slprime.chromatictooltips.event.TooltipEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.Parser;
 
@@ -216,6 +219,12 @@ public class TooltipHandler {
 
         if (TooltipHandler.lastContext == null) {
             TooltipHandler.lastContext = new TooltipContext(request, getRendererFor(request.context, request.stack));
+            TooltipHandler.lastContext.setPosition(mouse);
+
+            if (EnricherConfig.keyboardModifiersEnabled) {
+                updateSupportedModifiers(TooltipHandler.lastContext);
+            }
+
             updateContent = true;
         }
 
@@ -255,35 +264,38 @@ public class TooltipHandler {
     }
 
     protected static void enrichTooltip(TooltipContext context) {
-        final int enricherCount = TooltipHandler.tooltipEnrichers.size();
-        final EnricherMode activeModifier = ClientUtil.getActiveModifier();
+        final TooltipModifier activeModifier = ClientUtil.getActiveModifier();
+        final TooltipStyle style = context.getRenderer()
+            .getStyle();
         final ITooltipRenderer renderer = context.getRenderer();
+        final List<SectionComponent> headerSections = new ArrayList<>();
+        final List<SectionComponent> bodySections = new ArrayList<>();
+        final List<SectionComponent> footerSections = new ArrayList<>();
+        final Comparator<SectionComponent> byOrder = Comparator
+            .comparingInt(s -> style.getAsInt("sections." + s.getSectionId() + ".order", 0));
 
-        final List<ITooltipComponent> headerSections = new ArrayList<>(enricherCount);
-        final List<ITooltipComponent> bodySections = new ArrayList<>(enricherCount);
-        final List<ITooltipComponent> footerSections = new ArrayList<>(enricherCount);
-
-        context.setEnricherMode(activeModifier);
+        context.setActiveModifier(activeModifier);
 
         for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
-            final EnumSet<EnricherMode> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
+            final EnumSet<TooltipModifier> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
+            final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
 
-            if (modes.contains(EnricherMode.ALWAYS) || modes.contains(activeModifier)) {
-                final List<ITooltipComponent> result = enricher.build(context);
+            if (modes.contains(TooltipModifier.NONE) && (place == EnricherPlace.HEADER || place == EnricherPlace.FOOTER)
+                || modes.contains(activeModifier)) {
+                final TooltipLines result = enricher.build(context);
 
                 if (result != null && !result.isEmpty()) {
-                    final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
                     final String sectionId = enricher.sectionId();
                     final SectionComponent section = new SectionComponent(
                         sectionId,
                         renderer.getSectionBox("sections." + sectionId),
-                        result);
+                        result.buildComponents(context));
 
-                    if (place == ITooltipEnricher.EnricherPlace.HEADER) {
+                    if (place == EnricherPlace.HEADER) {
                         headerSections.add(section);
-                    } else if (place == ITooltipEnricher.EnricherPlace.BODY) {
+                    } else if (place == EnricherPlace.BODY) {
                         bodySections.add(section);
-                    } else if (place == ITooltipEnricher.EnricherPlace.FOOTER) {
+                    } else if (place == EnricherPlace.FOOTER) {
                         footerSections.add(section);
                     }
 
@@ -291,31 +303,81 @@ public class TooltipHandler {
             }
         }
 
-        if (bodySections.isEmpty() && activeModifier != EnricherMode.DEFAULT) {
-            context.setEnricherMode(EnricherMode.DEFAULT);
+        if (bodySections.isEmpty() && activeModifier != TooltipModifier.NONE) {
+            bodySections.addAll(fallbackBuildBodyList(context));
+        }
 
-            for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
-                final EnumSet<EnricherMode> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
-                final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
+        headerSections.sort(byOrder);
+        bodySections.sort(byOrder);
+        footerSections.sort(byOrder);
 
-                if (place == ITooltipEnricher.EnricherPlace.BODY && modes.contains(EnricherMode.DEFAULT)) {
-                    final List<ITooltipComponent> result = enricher.build(context);
+        context.addSection("header", new ArrayList<>(headerSections));
+        context.addSection("body", new ArrayList<>(bodySections));
+        context.addSection("footer", new ArrayList<>(footerSections));
 
-                    if (result != null && !result.isEmpty()) {
-                        final String sectionId = enricher.sectionId();
-                        final SectionComponent section = new SectionComponent(
-                            sectionId,
-                            renderer.getSectionBox("sections." + sectionId),
-                            result);
-                        bodySections.add(section);
-                    }
+        ClientUtil.postEvent(new TooltipEnricherEvent(context));
+    }
+
+    public static void updateSupportedModifiers(TooltipContext context) {
+        final ITooltipRenderer renderer = context.getRenderer();
+
+        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+            final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
+
+            if ("itemInfo".equals(enricher.sectionId()) || place != EnricherPlace.BODY) {
+                continue;
+            }
+
+            final EnumSet<TooltipModifier> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
+            TooltipLines noneComponents = null;
+
+            if (modes.contains(TooltipModifier.NONE)) {
+                context.setActiveModifier(TooltipModifier.NONE);
+                noneComponents = enricher.build(context);
+            }
+
+            for (TooltipModifier modifier : modes) {
+
+                if (modifier == TooltipModifier.NONE || context.getSupportedModifiers()
+                    .contains(modifier)) {
+                    continue;
+                }
+
+                context.setActiveModifier(modifier);
+                final TooltipLines result = enricher.build(context);
+
+                if (result != null && !result.isEmpty() && (noneComponents == null || !result.equals(noneComponents))) {
+                    context.supportModifiers(modifier);
+                }
+            }
+
+        }
+    }
+
+    protected static List<SectionComponent> fallbackBuildBodyList(TooltipContext context) {
+        final List<SectionComponent> bodySections = new ArrayList<>();
+        final ITooltipRenderer renderer = context.getRenderer();
+        context.setActiveModifier(TooltipModifier.NONE);
+
+        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+            final EnumSet<TooltipModifier> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
+            final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
+
+            if (place == EnricherPlace.BODY && modes.contains(TooltipModifier.NONE)) {
+                final TooltipLines result = enricher.build(context);
+
+                if (result != null && !result.isEmpty()) {
+                    final String sectionId = enricher.sectionId();
+                    final SectionComponent section = new SectionComponent(
+                        sectionId,
+                        renderer.getSectionBox("sections." + sectionId),
+                        result.buildComponents(context));
+                    bodySections.add(section);
                 }
             }
         }
 
-        context.addSection("header", headerSections);
-        context.addSection("body", bodySections);
-        context.addSection("footer", footerSections);
+        return bodySections;
     }
 
     protected static ITooltipRenderer getRendererFor(String context, ItemStack stack) {
@@ -341,6 +403,10 @@ public class TooltipHandler {
         }
 
         return TooltipHandler.defaultTooltipRenderer;
+    }
+
+    public static TooltipContext getLastTooltipContext() {
+        return TooltipHandler.lastContext;
     }
 
     public static Rectangle getLastTooltipBounds() {

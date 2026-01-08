@@ -10,12 +10,16 @@ import java.util.Map;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.StatCollector;
 
 import com.slprime.chromatictooltips.api.AttributeModifierData;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.AttributeEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
@@ -101,6 +105,22 @@ public class AttributeModifierEnricher implements ITooltipEnricher {
                 offsetY += lineHeight;
             }
         }
+
+        @Override
+        public int hashCode() {
+            return this.lines.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj instanceof InlineComponent other) {
+                return this.lines.equals(other.lines);
+            }
+
+            return false;
+        }
+
     }
 
     protected static final Map<String, String> ATTRIBUTE_ICONS = new HashMap<>();
@@ -128,19 +148,19 @@ public class AttributeModifierEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return this.showOnlyIcons ? EnumSet.of(EnricherMode.DEFAULT)
-            : EnumSet.of(EnricherMode.DEFAULT, EnricherMode.SHIFT);
+    public EnumSet<TooltipModifier> mode() {
+        return this.showOnlyIcons ? EnumSet.of(TooltipModifier.NONE)
+            : EnumSet.of(TooltipModifier.NONE, TooltipModifier.SHIFT);
     }
 
     protected boolean shownIcons(TooltipContext context) {
         return EnricherConfig.attributeModifierIconsEnabled && context.getRenderer()
-            .getEnricherModes("attributes:icons", EnumSet.of(EnricherMode.DEFAULT))
-            .contains(context.getEnricherMode());
+            .getEnricherModes("attributes:icons", EnumSet.of(TooltipModifier.NONE))
+            .contains(context.getActiveModifier());
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null || this.showOnlyIcons && !EnricherConfig.attributeModifierIconsEnabled) {
@@ -160,9 +180,9 @@ public class AttributeModifierEnricher implements ITooltipEnricher {
         }
 
         if (this.showOnlyIcons && !attributeModifiersList.isEmpty()) {
-            return Collections.singletonList(new InlineComponent(Collections.singletonList(attributeModifiersList)));
+            return new TooltipLines(new InlineComponent(Collections.singletonList(attributeModifiersList)));
         } else {
-            return attributeModifiersList;
+            return new TooltipLines(attributeModifiersList);
         }
 
     }
@@ -176,10 +196,6 @@ public class AttributeModifierEnricher implements ITooltipEnricher {
             attributeModifiers.add(
                 new AttributeModifierData(attributeName, entry.getValue(), stack)
                     .withIcon(ATTRIBUTE_ICONS.getOrDefault(entry.getKey(), null)));
-
-            if (!ATTRIBUTE_ICONS.containsKey(entry.getKey())) {
-                System.out.println("Missing icon for attribute: " + entry.getKey());
-            }
         }
 
         if (stack.getItem() instanceof ItemArmor armor) {
@@ -202,22 +218,46 @@ public class AttributeModifierEnricher implements ITooltipEnricher {
             event.attributeModifiers,
             (AttributeModifierData a, AttributeModifierData b) -> Double.compare(b.getValue(), a.getValue()));
 
+        addUnbreakableAttribute(stack, event.attributeModifiers);
+
+        if (EnricherConfig.durabilityEnabled) {
+            addDurabilityAttribute(stack, event.attributeModifiers);
+        }
+
+        if (EnricherConfig.burnTimeEnabled) {
+            addFuelAttribute(stack, event.attributeModifiers);
+        }
+
+        return event.attributeModifiers;
+    }
+
+    private static void addUnbreakableAttribute(ItemStack stack, List<AttributeModifierData> attributeModifiers) {
         if (stack.hasTagCompound() && stack.getTagCompound()
             .getBoolean("Unbreakable")) {
             final String textLine = StatCollector.translateToLocal("item.unbreakable");
-            event.attributeModifiers.add(new AttributeModifierData(textLine, null, 0, null));
+            attributeModifiers.add(new AttributeModifierData(textLine, null, 0, null));
         }
+    }
 
+    private static void addDurabilityAttribute(ItemStack stack, List<AttributeModifierData> attributeModifiers) {
         if (stack.isItemStackDamageable()) {
             final int maxDamage = stack.getMaxDamage();
             final int value = maxDamage - stack.getItemDamageForDisplay();
             final String textLine = ClientUtil.translate("enricher.attributes.durability.text", value, maxDamage);
             final String iconLine = ClientUtil.translate("enricher.attributes.durability.icon", value, maxDamage);
-            event.attributeModifiers
-                .add(new AttributeModifierData(textLine, iconLine, value, "attributes/durability.png"));
+            attributeModifiers.add(new AttributeModifierData(textLine, iconLine, value, "attributes/durability.png"));
         }
+    }
 
-        return event.attributeModifiers;
+    private static void addFuelAttribute(ItemStack stack, List<AttributeModifierData> attributeModifiers) {
+        final int time = TileEntityFurnace.getItemBurnTime(stack);
+        if (time > 0) {
+            final String textLine = ClientUtil
+                .translate("enricher.attributes.fuel.text", ClientUtil.formatNumbers(time));
+            final String iconLine = ClientUtil
+                .translate("enricher.attributes.fuel.icon", ClientUtil.formatNumbers(time));
+            attributeModifiers.add(new AttributeModifierData(textLine, iconLine, time, "attributes/fuel.png"));
+        }
     }
 
 }

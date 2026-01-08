@@ -99,4 +99,14 @@ public class TextComponent implements ITooltipComponent {
         return this.textLines.hashCode();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof TextComponent other) {
+            return this.textLines.equals(other.textLines);
+        }
+
+        return false;
+    }
+
 }

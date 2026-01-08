@@ -1,5 +1,7 @@
 package com.slprime.chromatictooltips.component;
 
+import java.util.Objects;
+
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 
@@ -11,7 +13,7 @@ import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 
-public class AttributeModifierComponent implements ITooltipComponent {
+public class ItemAttributeComponent implements ITooltipComponent {
 
     private final static int ICON_SIZE = 8;
     private final static int SPACE = 3;
@@ -22,11 +24,11 @@ public class AttributeModifierComponent implements ITooltipComponent {
     private int width = 0;
     private int height = 0;
 
-    public AttributeModifierComponent(String path, String title) {
+    public ItemAttributeComponent(String path, String title) {
         this(new ResourceLocation(path.contains(":") ? path : ChromaticTooltips.MODID + ":" + path), title);
     }
 
-    protected AttributeModifierComponent(ResourceLocation resourceLocation, String title) {
+    protected ItemAttributeComponent(ResourceLocation resourceLocation, String title) {
         this.resourceLocation = resourceLocation;
         this.title = title;
 
@@ -49,11 +51,6 @@ public class AttributeModifierComponent implements ITooltipComponent {
     @Override
     public int getSpacing() {
         return TooltipFontContext.DEFAULT_SPACING;
-    }
-
-    @Override
-    public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
-        return new ITooltipComponent[] { this };
     }
 
     @Override
@@ -85,6 +82,22 @@ public class AttributeModifierComponent implements ITooltipComponent {
         tessellator.addVertexWithUV(x + width, y + height, 0, 1, 1);
         tessellator.addVertexWithUV(x + width, y, 0, 1, 0);
         tessellator.draw();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.title, this.resourceLocation.getResourcePath());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof ItemAttributeComponent other) {
+            return this.title.equals(other.title) && this.resourceLocation.getResourcePath()
+                .equals(other.resourceLocation.getResourcePath());
+        }
+
+        return false;
     }
 
 }

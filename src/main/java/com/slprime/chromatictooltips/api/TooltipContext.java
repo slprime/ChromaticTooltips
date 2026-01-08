@@ -3,7 +3,9 @@ package com.slprime.chromatictooltips.api;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
@@ -19,7 +21,8 @@ public class TooltipContext {
     protected List<ITooltipComponent> contextTooltip = new ArrayList<>();
     protected List<SectionComponent> lines = new ArrayList<>();
     protected Rectangle anchorBounds = new Rectangle(0, 0, 0, 0);
-    protected ITooltipEnricher.EnricherMode enricherMode = ITooltipEnricher.EnricherMode.DEFAULT;
+    protected EnumSet<TooltipModifier> supportedModifiers = EnumSet.noneOf(TooltipModifier.class);
+    protected TooltipModifier activeModifier = TooltipModifier.NONE;
 
     protected final ITooltipRenderer renderer;
     protected int revision = 0;
@@ -90,13 +93,23 @@ public class TooltipContext {
         return this.stack;
     }
 
-    public ITooltipEnricher.EnricherMode getEnricherMode() {
-        return this.enricherMode;
+    public void supportModifiers(TooltipModifier... modifiers) {
+        if (this.supportedModifiers.addAll(Arrays.asList(modifiers))) {
+            this.revision++;
+        }
     }
 
-    public void setEnricherMode(ITooltipEnricher.EnricherMode enricherMode) {
-        if (this.enricherMode != enricherMode) {
-            this.enricherMode = enricherMode;
+    public EnumSet<TooltipModifier> getSupportedModifiers() {
+        return supportedModifiers;
+    }
+
+    public TooltipModifier getActiveModifier() {
+        return this.activeModifier;
+    }
+
+    public void setActiveModifier(TooltipModifier activeModifier) {
+        if (this.activeModifier != activeModifier) {
+            this.activeModifier = activeModifier;
             this.revision++;
         }
     }

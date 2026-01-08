@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.HotkeyEnricherEvent;
@@ -29,20 +31,18 @@ public class HotkeyEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.ALT);
+    public EnumSet<TooltipModifier> mode() {
+        return EnumSet.of(TooltipModifier.ALT);
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
 
         if (!EnricherConfig.hotkeysEnabled) {
             return null;
         }
 
-        final ITooltipComponent component = hotkeysListComponent(context);
-
-        return component == null ? null : Collections.singletonList(component);
+        return new TooltipLines(hotkeysListComponent(context));
     }
 
     protected TextComponent hotkeysListComponent(TooltipContext context) {

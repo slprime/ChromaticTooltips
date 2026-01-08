@@ -117,8 +117,6 @@ A tooltip style for items with rare rarity:
       "offsetMain": "<int>",
       "offsetCross": "<int>",
 
-      "sectionSpacing": "<int>",
-
       "hr": {
         "decorators": [ "<TooltipDecorator>" ],
         "transform": "<TooltipTransform>",
@@ -195,7 +193,12 @@ Any tooltip, section or element is a SectionBox.
   "alignInline": "left|center|right",
   "alignBlock": "top|center|bottom",
   "minWidth": "<int>",
-  "minHeight": "<int>"
+  "minHeight": "<int>",
+
+  "order": "<int>",
+
+  "spacing": "<int>",
+  "sectionSpacing": "<int>"
 }
 ```
 
@@ -778,7 +781,7 @@ Modes can be configured through configuration files using the key `sections.<sec
 
 List of default sections:
 1. title
-1. amount
+1. stacksize
 1. hotkeys:help-text
 1. hotkeys
 1. oreDictionary
@@ -795,7 +798,7 @@ Applies to the first line of the tooltip, or to the item name. You can use all s
 
 Triggers `ItemTitleEnricherEvent` through which other mods can edit `displayName` if it's an item.
 
-### 8.2. amount
+### 8.2. stacksize
 
 **Place:** BODY
 **Mode:** SHIFT
@@ -867,7 +870,7 @@ Each enricher can be configured through configuration files, changing its displa
 ```json
 {
     "sections": {
-        "amount": {
+        "stacksize": {
             "modes": ["SHIFT", "CTRL"],
             "place": "BODY"
         },

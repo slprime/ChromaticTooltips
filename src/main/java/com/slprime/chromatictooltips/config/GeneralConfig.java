@@ -14,9 +14,14 @@ public class GeneralConfig {
     @Config.DefaultStringList({})
     public static String[] tooltipBlacklistLines;
 
-    @Config.Comment("Scaling factor for tooltips. 0 = auto, 1 = normal size, 2 = double size, etc.")
-    @Config.RangeInt(min = 0, max = 5)
+    @Config.Comment("Scaling factor for tooltips. 0 = auto, 1 = normal size. Positive values increase the tooltip to the next scale steps, negative values decrease it.")
+    @Config.RangeInt(min = -7, max = 7)
     @Config.DefaultInt(0)
     public static int scaleFactor;
+
+    @Config.Comment("Maximum width of tooltips in scaled pixels. 0 = no limit.")
+    @Config.RangeInt(min = 0, max = 10000)
+    @Config.DefaultInt(0)
+    public static int maxWidth;
 
 }

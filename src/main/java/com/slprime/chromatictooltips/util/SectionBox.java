@@ -16,7 +16,8 @@ public class SectionBox implements ITooltipComponent {
     protected TooltipAlign alignInline = TooltipAlign.START;
     protected TooltipAlign alignBlock = TooltipAlign.END;
     protected Dimension contentSize = new Dimension(0, 0);
-    protected int spacing = 0;
+    protected int sectionSpacing = -1;
+    protected int spacing = -1;
     protected int minWidth;
     protected int minHeight;
 
@@ -37,7 +38,8 @@ public class SectionBox implements ITooltipComponent {
 
         this.minWidth = style.getAsInt("minWidth", 0);
         this.minHeight = style.getAsInt("minHeight", 0);
-        this.spacing = style.getAsInt("spacing", 0);
+        this.spacing = style.getAsInt("spacing", -1);
+        this.sectionSpacing = style.getAsInt("sectionSpacing", this.sectionSpacing);
     }
 
     public SectionBox(SectionBox copy) {
@@ -51,6 +53,7 @@ public class SectionBox implements ITooltipComponent {
         this.minWidth = copy.minWidth;
         this.minHeight = copy.minHeight;
         this.spacing = copy.spacing;
+        this.sectionSpacing = copy.sectionSpacing;
     }
 
     public void setContentSize(int width, int height) {
@@ -97,7 +100,7 @@ public class SectionBox implements ITooltipComponent {
 
     @Override
     public int getSpacing() {
-        return this.spacing;
+        return Math.max(0, this.spacing);
     }
 
     @Override

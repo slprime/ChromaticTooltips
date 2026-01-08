@@ -1,27 +1,25 @@
 package com.slprime.chromatictooltips.enricher;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 import com.slprime.chromatictooltips.api.EnricherPlace;
-import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
-import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.component.KeyboardModifierComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 
-public class ContextInfoEnricher implements ITooltipEnricher {
+public class KeyboardModifierEnricher implements ITooltipEnricher {
 
     @Override
     public String sectionId() {
-        return "contextInfo";
+        return "keyboard-modifier";
     }
 
     @Override
     public EnricherPlace place() {
-        return EnricherPlace.BODY;
+        return EnricherPlace.HEADER;
     }
 
     @Override
@@ -31,13 +29,14 @@ public class ContextInfoEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final List<ITooltipComponent> lines = new ArrayList<>(context.getContextTooltip());
 
-        if (context.getStack() == null && !lines.isEmpty() && lines.get(0) instanceof TextComponent) {
-            lines.remove(0);
+        if (!EnricherConfig.keyboardModifiersEnabled || context.getSupportedModifiers()
+            .isEmpty()) {
+            return null;
         }
 
-        return new TooltipLines(lines);
+        return new TooltipLines(
+            new KeyboardModifierComponent(context.getSupportedModifiers(), context.getActiveModifier()));
     }
 
 }

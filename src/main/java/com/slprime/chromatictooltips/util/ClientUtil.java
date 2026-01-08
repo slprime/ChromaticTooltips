@@ -28,7 +28,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import com.slprime.chromatictooltips.ChromaticTooltips;
-import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.config.GeneralConfig;
 
 import cpw.mods.fml.common.eventhandler.Event;
@@ -131,15 +131,19 @@ public class ClientUtil {
         return new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
     }
 
-    public static EnricherMode getActiveModifier() {
+    public static int getTooltipScale() {
+        return Math.max(1, getScaledResolution().getScaleFactor() + GeneralConfig.scaleFactor);
+    }
+
+    public static TooltipModifier getActiveModifier() {
         if (ClientUtil.isShiftKeyDown()) {
-            return EnricherMode.SHIFT;
+            return TooltipModifier.SHIFT;
         } else if (ClientUtil.isCtrlKeyDown()) {
-            return EnricherMode.CTRL;
+            return TooltipModifier.CTRL;
         } else if (ClientUtil.isAltKeyDown()) {
-            return EnricherMode.ALT;
+            return TooltipModifier.ALT;
         }
-        return EnricherMode.DEFAULT;
+        return TooltipModifier.NONE;
     }
 
     public static String applyBaseColorIfAbsent(String str, EnumChatFormatting baseColor) {

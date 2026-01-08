@@ -1,8 +1,6 @@
 package com.slprime.chromatictooltips.enricher;
 
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -12,19 +10,20 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
 
-import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
-public class AmountEnricher implements ITooltipEnricher {
+public class StackSizeEnricher implements ITooltipEnricher {
 
     @Override
     public String sectionId() {
-        return "amount";
+        return "stacksize";
     }
 
     @Override
@@ -33,19 +32,19 @@ public class AmountEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.SHIFT);
+    public EnumSet<TooltipModifier> mode() {
+        return EnumSet.of(TooltipModifier.SHIFT);
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !EnricherConfig.amountEnabled) {
+        if (stack == null || !EnricherConfig.stackSizeEnabled) {
             return null;
         }
 
-        final long stackSize = EnricherConfig.playerInventoryAmountEnabled ? getStackSize(context) : stack.stackSize;
+        final long stackSize = EnricherConfig.includePlayerInventoryEnabled ? getStackSize(context) : stack.stackSize;
         final StackSizeEnricherEvent event = new StackSizeEnricherEvent(context, getFluid(stack), stackSize);
         ClientUtil.postEvent(event);
 
@@ -54,10 +53,10 @@ public class AmountEnricher implements ITooltipEnricher {
         }
 
         if (event.fluid != null) {
-            return Arrays.asList(new TextComponent(formatFluidAmount(event.fluid.amount * event.stackSize)));
+            return new TooltipLines(formatFluidAmount(event.fluid.amount * event.stackSize));
         }
 
-        return Arrays.asList(new TextComponent(formatStackSize(event.stackSize, stack.getMaxStackSize())));
+        return new TooltipLines(formatStackSize(event.stackSize, stack.getMaxStackSize()));
     }
 
     protected long getStackSize(TooltipContext context) {

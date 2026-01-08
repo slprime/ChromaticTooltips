@@ -16,32 +16,40 @@
             "margin": 1
         }],
 
-        "spacing": {
-            "section": 2,
-            "paragraph": 6,
-            "hr": 0,
+        "font": {
+            "paragraph": 6
+        },
 
-            "divider": {
-                "decorator": {
-                    "type": "background",
-                    "color": "0xFFFFFFFF",
-                    "alignBlock": "center",
-                    "height": 1
-                },
-                "height": 10
-            }
+        "hr": {
+            "height": 0
+        },
+
+        "divider": {
+            "decorator": {
+                "type": "background",
+                "color": "0xFFFFFFFF",
+                "alignBlock": "center",
+                "height": 1
+            },
+            "height": 10
+        },
+
+        "sectionSpacing": 4,
+
+        "navigation": {
+            "marginTop": 4
         },
 
         "header": {
-            "spacing": 4
+
         },
 
         "body": {
-            "spacing": 2
+
         },
 
         "footer": {
-            "spacing": 2
+
         },
 
         "sections": {
@@ -50,11 +58,15 @@
 
             },
 
-            "amount": {
-                "spacing": 2
+            "keyboard-modifier": {
+
             },
 
-            "hotkeys:help-text": {
+            "attributes:icons": {
+
+            },
+
+            "stacksize": {
 
             },
 
@@ -62,26 +74,30 @@
 
             },
 
-            "contextInfo": {
-
-            },
-
             "itemInfo": {
 
             },
 
-            "modInfo": {
+            "enchantments": {
+
+            },
+
+            "attributes": {
 
             },
 
             "oreDictionary": {
 
+            },
+
+            "contextInfo": {
+
+            },
+
+            "modInfo": {
+
             }
 
-        },
-
-        "navigation": {
-            "marginTop": 4
         }
 
     }

@@ -20,11 +20,11 @@ import org.lwjgl.opengl.GL12;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
-import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherMode;
-import com.slprime.chromatictooltips.api.ITooltipEnricher.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipStyle;
 import com.slprime.chromatictooltips.component.SectionComponent;
 import com.slprime.chromatictooltips.component.SpaceComponent;
@@ -35,6 +35,7 @@ import com.slprime.chromatictooltips.util.ClientUtil;
 import com.slprime.chromatictooltips.util.ItemStackFilterParser;
 import com.slprime.chromatictooltips.util.SectionBox;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
+import com.slprime.chromatictooltips.util.TooltipSpacing;
 
 public class TooltipRenderer implements ITooltipRenderer {
 
@@ -58,7 +59,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         public int getMaxWidth() {
-            return this.maxWidth;
+            return GeneralConfig.maxWidth == 0 ? this.maxWidth : GeneralConfig.maxWidth;
         }
 
         public int getNavigationHeight() {
@@ -69,7 +70,7 @@ public class TooltipRenderer implements ITooltipRenderer {
 
     protected Map<String, SectionBox> sectionBoxCache = new HashMap<>();
     protected Map<String, SpaceComponent> spacingCache = new HashMap<>();
-    protected Map<String, EnumSet<EnricherMode>> enricherModesCache = new HashMap<>();
+    protected Map<String, EnumSet<TooltipModifier>> tooltipModifierCache = new HashMap<>();
     protected Map<String, EnricherPlace> enricherPlaceCache = new HashMap<>();
 
     protected int mainAxisOffset = 6;
@@ -83,7 +84,7 @@ public class TooltipRenderer implements ITooltipRenderer {
     protected int currentPage = 0;
     protected int totalPages = 0;
     protected Point lastPosition = null;
-    protected float guiScaleFactor = 0;
+    protected float tooltipScaleFactor = 0;
 
     protected Predicate<ItemStack> filter;
     protected TooltipStyle tooltipStyle;
@@ -135,16 +136,16 @@ public class TooltipRenderer implements ITooltipRenderer {
                 .getAsJsonObject();
 
             if (section.has("modes")) {
-                final EnumSet<EnricherMode> values = EnumSet.noneOf(EnricherMode.class);
+                final EnumSet<TooltipModifier> values = EnumSet.noneOf(TooltipModifier.class);
 
                 for (JsonElement modeElement : section.getAsJsonArray("modes")) {
                     final String mode = modeElement.getAsString();
                     if (mode != null && !mode.isEmpty()) {
-                        values.add(EnricherMode.fromString(mode));
+                        values.add(TooltipModifier.fromString(mode));
                     }
                 }
 
-                this.enricherModesCache.put(sectionId, values);
+                this.tooltipModifierCache.put(sectionId, values);
             }
 
             if (section.has("place")) {
@@ -168,8 +169,8 @@ public class TooltipRenderer implements ITooltipRenderer {
         return this.tooltipStyle;
     }
 
-    public EnumSet<EnricherMode> getEnricherModes(String enricherId, EnumSet<EnricherMode> defaultModes) {
-        return this.enricherModesCache.getOrDefault(enricherId, defaultModes);
+    public EnumSet<TooltipModifier> getEnricherModes(String enricherId, EnumSet<TooltipModifier> defaultModes) {
+        return this.tooltipModifierCache.getOrDefault(enricherId, defaultModes);
     }
 
     public EnricherPlace getEnricherPlace(String enricherId, EnricherPlace defaultPlace) {
@@ -226,16 +227,18 @@ public class TooltipRenderer implements ITooltipRenderer {
         maxHeight = Math.max(maxHeight, this.tooltipSectionBox.getMinHeight());
 
         final List<SectionComponent> pages = new ArrayList<>();
+        final int paginationHeight = this.tooltipSectionBox.getNavigationHeight();
         ITooltipComponent[] split = component.paginate(this.lastContext, maxWidth, maxHeight);
         final SectionComponent firstPage = (SectionComponent) split[0];
-        final int paginationHeight = this.tooltipSectionBox.getNavigationHeight();
 
         if (split.length == 1) {
             return Collections.singletonList(firstPage);
         }
 
+        maxHeight = Math.max(0, maxHeight - paginationHeight);
+
         while (component != null) {
-            split = component.paginate(this.lastContext, maxWidth, maxHeight - paginationHeight);
+            split = component.paginate(this.lastContext, maxWidth, maxHeight);
             pages.add((SectionComponent) split[0]);
 
             if (split.length > 1) {
@@ -308,22 +311,19 @@ public class TooltipRenderer implements ITooltipRenderer {
 
         if (this.lastPosition == null) {
             final Minecraft mc = ClientUtil.mc();
-            final float tooltipScale = GeneralConfig.scaleFactor == 0 ? ClientUtil.getScaledResolution()
-                .getScaleFactor() : GeneralConfig.scaleFactor;
-            this.guiScaleFactor = tooltipScale / ClientUtil.getScaledResolution()
-                .getScaleFactor();
+            final float tooltipScale = ClientUtil.getTooltipScale();
             final int scaledWidth = (int) Math.ceil(mc.displayWidth / tooltipScale);
             final int scaledHeight = (int) Math.ceil(mc.displayHeight / tooltipScale);
-
-            final List<ITooltipComponent> components = prepareComponents(this.lastContext.getSections());
             final List<SectionComponent> pages = paginateComponents(
-                new SectionComponent("page", this.tooltipSectionBox, components),
-                scaledWidth - this.tooltipSectionBox.getInline(),
-                scaledHeight - this.tooltipSectionBox.getBlock());
+                new SectionComponent("page", this.tooltipSectionBox, prepareComponents(this.lastContext.getSections())),
+                scaledWidth,
+                scaledHeight);
 
             this.totalPages = pages.size();
             this.currentPage = Math.max(0, Math.min(this.currentPage, this.totalPages - 1));
             this.pagedTooltipComponent = pages.get(this.currentPage);
+            this.tooltipScaleFactor = tooltipScale / ClientUtil.getScaledResolution()
+                .getScaleFactor();
 
             if (this.totalPages > 1) {
                 addNavigation(this.pagedTooltipComponent, this.currentPage + 1, this.totalPages);
@@ -332,14 +332,24 @@ public class TooltipRenderer implements ITooltipRenderer {
             this.lastPosition = prepareTooltipPosition(
                 this.pagedTooltipComponent.getWidth(),
                 this.pagedTooltipComponent.getHeight(),
-                scaleAnchorBounds(this.lastContext.getAnchorBounds(), this.guiScaleFactor),
+                scaleAnchorBounds(this.lastContext.getAnchorBounds(), this.tooltipScaleFactor),
                 scaledWidth,
                 scaledHeight);
         }
 
         if (!this.pagedTooltipComponent.isEmpty()) {
+            final TooltipSpacing margin = this.pagedTooltipComponent.getMargin();
+            final int width = this.pagedTooltipComponent.getWidth() - margin.getInline();
+            final int height = this.pagedTooltipComponent.getHeight() - margin.getBlock();
+            final Rectangle tooltipRectangle = new Rectangle(
+                (int) ((this.lastPosition.x + margin.getLeft()) * this.tooltipScaleFactor),
+                (int) ((this.lastPosition.y + margin.getTop()) * this.tooltipScaleFactor),
+                (int) (width * this.tooltipScaleFactor),
+                (int) (height * this.tooltipScaleFactor));
+
             drawContent();
-            ClientUtil.postEvent(new RenderTooltipEvent(context, this.pagedTooltipComponent, this.lastPosition));
+
+            ClientUtil.postEvent(new RenderTooltipEvent(context, this.pagedTooltipComponent, tooltipRectangle));
         }
     }
 
@@ -358,12 +368,21 @@ public class TooltipRenderer implements ITooltipRenderer {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         ClientUtil.incZLevel(DEFAULT_Z_INDEX);
 
-        GL11.glTranslatef(this.lastPosition.x * this.guiScaleFactor, this.lastPosition.y * this.guiScaleFactor, 0);
-        GL11.glScalef(this.guiScaleFactor, this.guiScaleFactor, 1);
-
-        this.pagedTooltipComponent.draw(0, 0, this.pagedTooltipComponent.getWidth(), this.lastContext);
-
-        GL11.glScalef(1 / this.guiScaleFactor, 1 / this.guiScaleFactor, 1);
+        if (this.tooltipScaleFactor != 1.0f) {
+            GL11.glTranslatef(
+                this.lastPosition.x * this.tooltipScaleFactor,
+                this.lastPosition.y * this.tooltipScaleFactor,
+                0);
+            GL11.glScalef(this.tooltipScaleFactor, this.tooltipScaleFactor, 1);
+            this.pagedTooltipComponent.draw(0, 0, this.pagedTooltipComponent.getWidth(), this.lastContext);
+            GL11.glScalef(1 / this.tooltipScaleFactor, 1 / this.tooltipScaleFactor, 1);
+        } else {
+            this.pagedTooltipComponent.draw(
+                this.lastPosition.x,
+                this.lastPosition.y,
+                this.pagedTooltipComponent.getWidth(),
+                this.lastContext);
+        }
 
         ClientUtil.incZLevel(-DEFAULT_Z_INDEX);
         GL11.glEnable(GL11.GL_DEPTH_TEST);

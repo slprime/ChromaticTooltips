@@ -12,10 +12,11 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.event.ForgeEventFactory;
 
-import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 public class ItemInfoEnricher implements ITooltipEnricher {
@@ -31,24 +32,25 @@ public class ItemInfoEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.DEFAULT, EnricherMode.SHIFT);
+    public EnumSet<TooltipModifier> mode() {
+        return EnumSet.of(TooltipModifier.NONE, TooltipModifier.SHIFT);
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null) {
             return null;
         }
 
-        return new TooltipLines(itemInformation(stack)).buildComponents(context);
+        return new TooltipLines(itemInformation(stack.copy()));
     }
 
     protected List<String> itemInformation(ItemStack stack) {
         final Minecraft mc = ClientUtil.mc();
         final List<String> namelist = new ArrayList<>();
+        namelist.add(stack.getDisplayName()); // same mods expecting the first line to be the item name
 
         try {
             stack.getItem()
@@ -61,6 +63,8 @@ public class ItemInfoEnricher implements ITooltipEnricher {
 
             ForgeEventFactory.onItemTooltip(stack, mc.thePlayer, namelist, mc.gameSettings.advancedItemTooltips);
         } catch (Exception e) {}
+
+        namelist.remove(0); // remove temporary name added for information gathering
 
         return namelist;
     }

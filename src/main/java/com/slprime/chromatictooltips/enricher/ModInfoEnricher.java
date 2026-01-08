@@ -1,16 +1,15 @@
 package com.slprime.chromatictooltips.enricher;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
 
-import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
-import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 import cpw.mods.fml.common.Loader;
@@ -35,19 +34,19 @@ public class ModInfoEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.ALWAYS);
+    public EnumSet<TooltipModifier> mode() {
+        return EnumSet.of(TooltipModifier.NONE);
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null) {
             return null;
         }
 
-        final List<ITooltipComponent> components = new ArrayList<>();
+        final TooltipLines components = new TooltipLines();
         final UniqueIdentifier identifier = getIdentifier(stack);
         final String modname = nameFromStack(identifier);
 
@@ -55,14 +54,13 @@ public class ModInfoEnricher implements ITooltipEnricher {
             final boolean modnameEqualsModId = modname.replaceAll("\\s+", "")
                 .equalsIgnoreCase(identifier.modId.replaceAll("\\s+", ""));
 
-            components.add(
-                new TextComponent(
-                    ClientUtil.translate(
-                        "enricher.modinfo.identifier",
-                        modnameEqualsModId ? modname : identifier.modId,
-                        identifier.name)));
+            components.line(
+                ClientUtil.translate(
+                    "enricher.modinfo.identifier",
+                    modnameEqualsModId ? modname : identifier.modId,
+                    identifier.name));
         } else {
-            components.add(new TextComponent(ClientUtil.translate("enricher.modinfo.modname", modname)));
+            components.line(ClientUtil.translate("enricher.modinfo.modname", modname));
         }
 
         return components;

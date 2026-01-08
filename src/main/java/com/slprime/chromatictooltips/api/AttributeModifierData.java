@@ -8,7 +8,7 @@ import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
-import com.slprime.chromatictooltips.component.AttributeModifierComponent;
+import com.slprime.chromatictooltips.component.ItemAttributeComponent;
 import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
@@ -71,7 +71,7 @@ public class AttributeModifierData {
     public ITooltipComponent getIconComponent() {
 
         if (this.icon != null && this.iconLine != null) {
-            return new AttributeModifierComponent(this.icon, this.iconLine);
+            return new ItemAttributeComponent(this.icon, this.iconLine);
         }
 
         return null;

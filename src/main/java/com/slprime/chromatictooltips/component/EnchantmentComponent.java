@@ -3,6 +3,7 @@ package com.slprime.chromatictooltips.component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.EnumChatFormatting;
@@ -35,12 +36,12 @@ public class EnchantmentComponent implements ITooltipComponent {
     }
 
     protected EnchantmentComponent(ResourceLocation resourceLocation, String title, List<String> hint) {
-        this.hint = EnricherConfig.showEnchantmentHint ? hint : Collections.emptyList();
+        this.hint = EnricherConfig.enchantmentHintEnabled ? hint : Collections.emptyList();
         this.colorCodeIndex = ClientUtil.getColorCodeIndex(title);
         this.resourceLocation = resourceLocation;
         this.title = title;
 
-        this.marginLeft = EnricherConfig.showEnchantmentIcons ? ICON_SIZE + SPACE : 0;
+        this.marginLeft = EnricherConfig.enchantmentIconsEnabled ? ICON_SIZE + SPACE : 0;
         this.width = Math.max(this.width, TooltipFontContext.getStringWidth(title));
 
         for (String line : hint) {
@@ -95,7 +96,7 @@ public class EnchantmentComponent implements ITooltipComponent {
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
         final int lineHeight = TooltipFontContext.getFontHeight();
 
-        if (EnricherConfig.showEnchantmentIcons) {
+        if (EnricherConfig.enchantmentIconsEnabled) {
             drawIcon(x, y - 16f / 20f);
             x += this.marginLeft;
         }
@@ -138,6 +139,23 @@ public class EnchantmentComponent implements ITooltipComponent {
         tessellator.addVertexWithUV(x + width, y + height, 0, 1, 1);
         tessellator.addVertexWithUV(x + width, y, 0, 1, 0);
         tessellator.draw();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.title, this.hint, this.resourceLocation.getResourcePath());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof EnchantmentComponent other) {
+            return this.title.equals(other.title) && this.hint.equals(other.hint)
+                && this.resourceLocation.getResourcePath()
+                    .equals(other.resourceLocation.getResourcePath());
+        }
+
+        return false;
     }
 
 }

@@ -1,5 +1,7 @@
 package com.slprime.chromatictooltips.component;
 
+import java.util.Objects;
+
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipStyle;
@@ -64,6 +66,23 @@ public class SpaceComponent implements ITooltipComponent {
             }
 
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.height, this.decorators.isEmpty(), this.transform, this.mixColor);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof SpaceComponent other) {
+            return this.height == other.height && this.decorators.isEmpty() == other.decorators.isEmpty()
+                && Objects.equals(this.transform, other.transform)
+                && this.mixColor == other.mixColor;
+        }
+
+        return false;
     }
 
     @Override

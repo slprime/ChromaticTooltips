@@ -15,9 +15,11 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 
 import com.slprime.chromatictooltips.api.EnchantmentData;
-import com.slprime.chromatictooltips.api.ITooltipComponent;
+import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipLines;
+import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.component.EnchantmentComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.EnchantmentEnricherEvent;
@@ -61,12 +63,12 @@ public class EnchantmentEnricher implements ITooltipEnricher {
     }
 
     @Override
-    public EnumSet<EnricherMode> mode() {
-        return EnumSet.of(EnricherMode.DEFAULT);
+    public EnumSet<TooltipModifier> mode() {
+        return EnumSet.of(TooltipModifier.NONE);
     }
 
     @Override
-    public List<ITooltipComponent> build(TooltipContext context) {
+    public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
         if (stack == null) {
@@ -74,10 +76,10 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         }
 
         final List<EnchantmentData> enchantments = getEnchantments(context, stack);
-        final List<ITooltipComponent> enchantmentsList = new ArrayList<>();
+        final TooltipLines enchantmentsList = new TooltipLines();
 
         for (final EnchantmentData enchantmentData : enchantments) {
-            enchantmentsList.add(createEnchantmentComponent(enchantmentData));
+            enchantmentsList.line(createEnchantmentComponent(enchantmentData));
         }
 
         return enchantmentsList;
@@ -107,9 +109,9 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         final String icon = enchantmentIcons.getOrDefault(enchantmentData.enchantment.type, "star");
         final EnumChatFormatting color = enchantmentColors
             .getOrDefault(enchantmentData.enchantment.type, EnumChatFormatting.YELLOW);
-        List<String> hint = EnricherConfig.showEnchantmentHint ? enchantmentData.hint : Collections.emptyList();
+        List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint : Collections.emptyList();
 
-        if (EnricherConfig.showEnchantmentHint && hint.isEmpty()) {
+        if (EnricherConfig.enchantmentHintEnabled && hint.isEmpty()) {
             final String hintKey = enchantmentData.enchantment.getName() + ".hint";
 
             if (!hintKey.equals(StatCollector.translateToLocal(hintKey))) {

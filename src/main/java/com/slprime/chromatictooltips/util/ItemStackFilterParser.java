@@ -39,6 +39,23 @@ import cpw.mods.fml.common.registry.GameData;
  */
 public class ItemStackFilterParser {
 
+    protected static class SafePredicate<T> implements Predicate<T> {
+        private final Predicate<T> predicate;
+
+        public SafePredicate(Predicate<T> predicate) {
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean test(T t) {
+            try {
+                return this.predicate.test(t);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
     protected static final Map<String, Function<String, Predicate<ItemStack>>> customFilters = new HashMap<>();
 
     private ItemStackFilterParser() {}
@@ -78,7 +95,7 @@ public class ItemStackFilterParser {
             }
         }
 
-        return hasFilters ? partFilter : null;
+        return hasFilters ? new SafePredicate<>(partFilter) : null;
     }
 
     protected static Predicate<ItemStack> parseRules(String token) {

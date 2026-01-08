@@ -2,21 +2,18 @@ key.categories.chromatictooltips=Chromatic Tooltips
 key.chromatictooltips.next_page=Next Page
 key.chromatictooltips.previous_page=Previous Page
 
-chromatictooltips.key.alt=ALT
-
 chromatictooltips.navigation.page=§8Page: %s / %s [Press %s for next, %s for prev]
 chromatictooltips.navigation.page.next_only=§8Page: %s / %s [Press %s for next]
 chromatictooltips.navigation.page.previous_only=§8Page: %s / %s [Press %s for prev]
 
-chromatictooltips.enricher.stacksize.item=§7Count: %s
-chromatictooltips.enricher.stacksize.fluid=§7Amount: %s
+chromatictooltips.enricher.stacksize.item=§8Count: %s
+chromatictooltips.enricher.stacksize.fluid=§8Amount: %s
 
 chromatictooltips.enricher.modinfo.modname=§5%s
 chromatictooltips.enricher.modinfo.identifier=§5%s:§8%s
 
-chromatictooltips.enricher.hotkeys.helpText=§7Hold §6%s§7 for hotkeys
 chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 - §7%s
-chromatictooltips.enricher.hotkeys.keybind.keys=§7 / §6
+chromatictooltips.enricher.hotkeys.keybind.keys=§8 / §6
 
 chromatictooltips.enricher.oreDictionary.title=§7Ore Dictionary Names:
 chromatictooltips.enricher.oreDictionary.entry=§8 - §e%s
@@ -24,8 +21,18 @@ chromatictooltips.enricher.oreDictionary.entry=§8 - §e%s
 chromatictooltips.enricher.attributes.durability.text=§7Durability: %s / %s
 chromatictooltips.enricher.attributes.durability.icon=%s§7 / %s
 
+chromatictooltips.enricher.attributes.fuel.text=Burn Time: %s
+chromatictooltips.enricher.attributes.fuel.icon=%s
+
 chromatictooltips.enricher.attributes.armor.text=§7Protection: %s
 chromatictooltips.enricher.attributes.armor.icon=%s
+
+chromatictooltips.enricher.keyboard-modifier.shift.inactive=§8[SHIFT]§r
+chromatictooltips.enricher.keyboard-modifier.shift.active=§6[SHIFT]§r
+chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[CTRL]§r
+chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[CTRL]§r
+chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[ALT]§r
+chromatictooltips.enricher.keyboard-modifier.alt.active=§6[ALT]§r
 
 chromatictooltips.enricher.attributes.plus.0=%d
 chromatictooltips.enricher.attributes.plus.1=+%d%%

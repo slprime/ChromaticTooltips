@@ -14,4 +14,8 @@ public interface ITooltipComponent {
 
     public void draw(int x, int y, int availableWidth, TooltipContext context);
 
+    // It is essential to define methods in parent classes so that the comparison algorithm is always correct
+    // public int hashCode();
+    // public boolean equals(Object obj)
+
 }

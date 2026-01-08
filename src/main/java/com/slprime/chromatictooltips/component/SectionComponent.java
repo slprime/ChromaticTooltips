@@ -11,6 +11,8 @@ import com.slprime.chromatictooltips.util.SectionBox;
 
 public class SectionComponent extends SectionBox {
 
+    protected static int parentSectionSpacing = 0;
+
     protected List<ITooltipComponent> components = new ArrayList<>();
     protected ITooltipComponent pendingComponent = null;
     protected String sectionId = null;
@@ -85,26 +87,29 @@ public class SectionComponent extends SectionBox {
 
     @Override
     public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
+        final int parentSectionSpacing = SectionComponent.parentSectionSpacing;
         final List<ITooltipComponent> firstPage = new ArrayList<>();
         final List<ITooltipComponent> secondPage = new ArrayList<>();
-        int lastSpacing = 0;
+        int componentSpacing = 0;
         int currentHeight = 0;
 
-        if (this.spacing <= 0) {
-            this.spacing = context.getRenderer()
-                .getStyle()
-                .getAsInt("sectionSpacing", 4);
-        }
-
-        maxHeight -= getBlock();
+        maxHeight = Math.max(0, maxHeight - getBlock());
+        maxWidth = Math.max(0, maxWidth - getInline());
 
         this.fontContext.pushContext();
 
-        for (ITooltipComponent component : this.components) {
-            final int remainingHeight = maxHeight - currentHeight - lastSpacing;
+        if (this.sectionSpacing >= 0) {
+            SectionComponent.parentSectionSpacing = this.sectionSpacing;
+        }
 
-            if (firstPage.isEmpty() && component instanceof SpaceComponent) {
-                continue;
+        for (ITooltipComponent component : this.components) {
+            final int remainingHeight = maxHeight - currentHeight - componentSpacing;
+
+            if (secondPage.isEmpty() && component instanceof SpaceComponent) {
+                componentSpacing = 0;
+                if (firstPage.isEmpty() || firstPage.get(firstPage.size() - 1) instanceof SpaceComponent) {
+                    continue;
+                }
             }
 
             if (secondPage.isEmpty() && (remainingHeight > 0 || firstPage.isEmpty())) {
@@ -112,34 +117,49 @@ public class SectionComponent extends SectionBox {
                 final ITooltipComponent firstComponent = split[0];
                 final int compHeight = firstComponent.getHeight();
 
-                if (firstPage.isEmpty() || remainingHeight >= compHeight) {
-                    currentHeight += compHeight + lastSpacing;
-                    lastSpacing = firstComponent.getSpacing();
-                    firstPage.add(firstComponent);
-                } else {
-                    secondPage.add(firstComponent);
+                if (compHeight > 0) {
+                    if (firstPage.isEmpty() || remainingHeight >= compHeight + componentSpacing) {
+                        currentHeight += compHeight + componentSpacing;
+                        componentSpacing = firstComponent.getSpacing();
+                        firstPage.add(firstComponent);
+                    } else {
+                        secondPage.add(firstComponent);
+                    }
                 }
 
                 if (split.length > 1) {
-                    secondPage.add(split[1]);
+                    addIfNotEmpty(secondPage, split[1]);
                 }
 
-            } else if (!(component instanceof SpaceComponent)) {
-                secondPage.add(component);
+            } else if (!secondPage.isEmpty() || !(component instanceof SpaceComponent)) {
+                addIfNotEmpty(secondPage, component);
             }
         }
 
         this.fontContext.popContext();
+        SectionComponent.parentSectionSpacing = parentSectionSpacing;
 
         if (secondPage.isEmpty()) {
-            return new ITooltipComponent[] { createInstance(firstPage) };
+            return new ITooltipComponent[] { createInstance(context, firstPage) };
         }
 
-        return new ITooltipComponent[] { createInstance(firstPage), createInstance(secondPage) };
+        return new ITooltipComponent[] { createInstance(context, firstPage), createInstance(context, secondPage) };
     }
 
-    protected ITooltipComponent createInstance(List<ITooltipComponent> components) {
-        return new SectionComponent(this.sectionId, this, components);
+    protected void addIfNotEmpty(List<ITooltipComponent> list, ITooltipComponent component) {
+        if (component != null && component.getHeight() > 0) {
+            list.add(component);
+        }
+    }
+
+    protected ITooltipComponent createInstance(TooltipContext context, List<ITooltipComponent> components) {
+        final SectionComponent section = new SectionComponent(this.sectionId, this, components);
+
+        if (section.spacing < 0) {
+            section.spacing = SectionComponent.parentSectionSpacing;
+        }
+
+        return section;
     }
 
     @Override

@@ -109,8 +109,6 @@ Chromatic Tooltips позволяет:
       "offsetMain": "<int>",
       "offsetCross": "<int>",
 
-      "sectionSpacing": "<int>",
-
       "hr": {
         "decorators": [ "<TooltipDecorator>" ],
         "transform": "<TooltipTransform>",
@@ -187,7 +185,12 @@ example: minecraft:potion 16384-16462,!16386 | $oreiron | tag.color=red
   "alignInline": "left|center|right",
   "alignBlock": "top|center|bottom",
   "minWidth": "<int>",
-  "minHeight": "<int>"
+  "minHeight": "<int>",
+
+  "order": "<int>",
+
+  "spacing": "<int>",
+  "sectionSpacing": "<int>"
 }
 ```
 
@@ -768,7 +771,7 @@ Enrichers (обогатители) — это система компонент�
 
 Список дефолтных секций:
 1. title
-1. amount
+1. stacksize
 1. hotkeys:help-text
 1. hotkeys
 1. oreDictionary
@@ -785,7 +788,7 @@ Enrichers (обогатители) — это система компонент�
 
 Вызывает событие `ItemTitleEnricherEvent`, через которое другие моды могут редактировать `displayName` если это предмет.
 
-### 8.2. amount
+### 8.2. stacksize
 
 **Place:** BODY
 **Mode:** SHIFT
@@ -857,7 +860,7 @@ Enrichers (обогатители) — это система компонент�
 ```json
 {
     "sections": {
-        "amount": {
+        "stacksize": {
             "modes": ["SHIFT", "CTRL"],
             "place": "BODY"
         },

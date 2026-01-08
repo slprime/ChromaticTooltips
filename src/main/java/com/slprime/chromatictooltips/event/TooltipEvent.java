@@ -8,7 +8,7 @@ public class TooltipEvent extends Event {
 
     public final TooltipContext context;
 
-    public TooltipEvent(TooltipContext context) {
+    protected TooltipEvent(TooltipContext context) {
         this.context = context;
     }
 
