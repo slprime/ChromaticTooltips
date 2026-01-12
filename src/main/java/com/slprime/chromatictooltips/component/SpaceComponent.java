@@ -70,14 +70,17 @@ public class SpaceComponent implements ITooltipComponent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.height, this.decorators.isEmpty(), this.transform, this.mixColor);
+        return Objects
+            .hash(this.height, this.decorators == null || this.decorators.isEmpty(), this.transform, this.mixColor);
     }
 
     @Override
     public boolean equals(Object obj) {
 
         if (obj instanceof SpaceComponent other) {
-            return this.height == other.height && this.decorators.isEmpty() == other.decorators.isEmpty()
+            return this.height == other.height
+                && (this.decorators == null || this.decorators.isEmpty())
+                    == (other.decorators == null || other.decorators.isEmpty())
                 && Objects.equals(this.transform, other.transform)
                 && this.mixColor == other.mixColor;
         }

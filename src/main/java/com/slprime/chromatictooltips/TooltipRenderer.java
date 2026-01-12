@@ -59,7 +59,7 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         public int getMaxWidth() {
-            return GeneralConfig.maxWidth == 0 ? this.maxWidth : GeneralConfig.maxWidth;
+            return GeneralConfig.maxWidth == 0 ? this.maxWidth : Math.max(50, GeneralConfig.maxWidth);
         }
 
         public int getNavigationHeight() {
@@ -83,6 +83,7 @@ public class TooltipRenderer implements ITooltipRenderer {
     protected SectionComponent pagedTooltipComponent = null;
     protected int currentPage = 0;
     protected int totalPages = 0;
+    protected Rectangle anchorBounds = new Rectangle(0, 0, 0, 0);
     protected Point lastPosition = null;
     protected float tooltipScaleFactor = 0;
 
@@ -304,12 +305,7 @@ public class TooltipRenderer implements ITooltipRenderer {
             return;
         }
 
-        if (this.lastRevision != this.lastContext.getRevision()) {
-            this.lastRevision = this.lastContext.getRevision();
-            this.lastPosition = null;
-        }
-
-        if (this.lastPosition == null) {
+        if (this.lastPosition == null || this.lastRevision != this.lastContext.getRevision()) {
             final Minecraft mc = ClientUtil.mc();
             final float tooltipScale = ClientUtil.getTooltipScale();
             final int scaledWidth = (int) Math.ceil(mc.displayWidth / tooltipScale);
@@ -319,7 +315,9 @@ public class TooltipRenderer implements ITooltipRenderer {
                 scaledWidth,
                 scaledHeight);
 
+            this.lastPosition = null;
             this.totalPages = pages.size();
+            this.lastRevision = this.lastContext.getRevision();
             this.currentPage = Math.max(0, Math.min(this.currentPage, this.totalPages - 1));
             this.pagedTooltipComponent = pages.get(this.currentPage);
             this.tooltipScaleFactor = tooltipScale / ClientUtil.getScaledResolution()
@@ -329,6 +327,15 @@ public class TooltipRenderer implements ITooltipRenderer {
                 addNavigation(this.pagedTooltipComponent, this.currentPage + 1, this.totalPages);
             }
 
+        }
+
+        if (this.lastPosition == null || !this.anchorBounds.equals(this.lastContext.getAnchorBounds())) {
+            final Minecraft mc = ClientUtil.mc();
+            final float tooltipScale = ClientUtil.getTooltipScale();
+            final int scaledWidth = (int) Math.ceil(mc.displayWidth / tooltipScale);
+            final int scaledHeight = (int) Math.ceil(mc.displayHeight / tooltipScale);
+
+            this.anchorBounds.setBounds(this.lastContext.getAnchorBounds());
             this.lastPosition = prepareTooltipPosition(
                 this.pagedTooltipComponent.getWidth(),
                 this.pagedTooltipComponent.getHeight(),

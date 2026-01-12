@@ -10,6 +10,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.util.ClientUtil;
 
 import cpw.mods.fml.common.Loader;
@@ -42,7 +43,7 @@ public class ModInfoEnricher implements ITooltipEnricher {
     public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getStack();
 
-        if (stack == null || !ClientUtil.mc().gameSettings.advancedItemTooltips) {
+        if (stack == null || !EnricherConfig.modInfoEnabled) {
             return null;
         }
 
@@ -50,15 +51,8 @@ public class ModInfoEnricher implements ITooltipEnricher {
         final UniqueIdentifier identifier = getIdentifier(stack);
         final String modname = nameFromStack(identifier);
 
-        if (ClientUtil.isCtrlKeyDown()) {
-            final boolean modnameEqualsModId = modname.replaceAll("\\s+", "")
-                .equalsIgnoreCase(identifier.modId.replaceAll("\\s+", ""));
-
-            components.line(
-                ClientUtil.translate(
-                    "enricher.modinfo.identifier",
-                    modnameEqualsModId ? modname : identifier.modId,
-                    identifier.name));
+        if (ClientUtil.isCtrlKeyDown() && ClientUtil.mc().gameSettings.advancedItemTooltips) {
+            components.line(ClientUtil.translate("enricher.modinfo.identifier", identifier.modId, identifier.name));
         } else {
             components.line(ClientUtil.translate("enricher.modinfo.modname", modname));
         }

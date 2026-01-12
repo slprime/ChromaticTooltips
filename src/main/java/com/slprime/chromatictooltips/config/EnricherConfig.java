@@ -50,4 +50,8 @@ public class EnricherConfig {
     @Config.DefaultBoolean(true)
     public static boolean keyboardModifiersEnabled = true;
 
+    @Config.Comment("Show mod information in tooltips.")
+    @Config.DefaultBoolean(true)
+    public static boolean modInfoEnabled = true;
+
 }

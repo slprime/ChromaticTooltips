@@ -74,15 +74,7 @@ public class TooltipContext {
     }
 
     public void setAnchorBounds(int x, int y, int width, int height) {
-
-        if (this.anchorBounds.x == x && this.anchorBounds.y == y
-            && this.anchorBounds.width == width
-            && this.anchorBounds.height == height) {
-            return;
-        }
-
         this.anchorBounds.setBounds(x, y, width, height);
-        this.revision++;
     }
 
     public Rectangle getAnchorBounds() {

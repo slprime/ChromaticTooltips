@@ -116,9 +116,10 @@ public class SectionComponent extends SectionBox {
                 final ITooltipComponent[] split = component
                     .paginate(context, maxWidth, remainingHeight - componentSpacing);
                 final ITooltipComponent firstComponent = split[0];
-                final int compHeight = firstComponent.getHeight();
 
-                if (compHeight > 0) {
+                if (!isEmptyComponent(firstComponent)) {
+                    final int compHeight = firstComponent.getHeight();
+
                     if (firstPage.isEmpty() || remainingHeight >= compHeight + componentSpacing) {
                         currentHeight += compHeight + componentSpacing;
                         componentSpacing = firstComponent.getSpacing();
@@ -128,13 +129,14 @@ public class SectionComponent extends SectionBox {
                     }
                 }
 
-                if (split.length > 1) {
-                    addIfNotEmpty(secondPage, split[1]);
+                if (split.length > 1 && !isEmptyComponent(split[1])) {
+                    secondPage.add(split[1]);
                 }
 
-            } else if (!secondPage.isEmpty() || !(component instanceof SpaceComponent)) {
-                addIfNotEmpty(secondPage, component);
-            }
+            } else
+                if ((!secondPage.isEmpty() || !(component instanceof SpaceComponent)) && !isEmptyComponent(component)) {
+                    secondPage.add(component);
+                }
         }
 
         this.fontContext.popContext();
@@ -147,10 +149,8 @@ public class SectionComponent extends SectionBox {
         return new ITooltipComponent[] { createInstance(context, firstPage), createInstance(context, secondPage) };
     }
 
-    protected void addIfNotEmpty(List<ITooltipComponent> list, ITooltipComponent component) {
-        if (component != null && component.getHeight() > 0) {
-            list.add(component);
-        }
+    protected boolean isEmptyComponent(ITooltipComponent component) {
+        return component == null || component.getHeight() <= (component instanceof SectionBox box ? box.getBlock() : 0);
     }
 
     protected ITooltipComponent createInstance(TooltipContext context, List<ITooltipComponent> components) {
