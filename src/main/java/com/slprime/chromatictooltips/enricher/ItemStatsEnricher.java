@@ -19,109 +19,14 @@ import com.slprime.chromatictooltips.api.ItemStats;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.component.InlineComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.AttributeEnricherEvent;
 import com.slprime.chromatictooltips.util.ClientUtil;
-import com.slprime.chromatictooltips.util.TooltipFontContext;
 
 public class ItemStatsEnricher implements ITooltipEnricher {
 
-    protected static class InlineComponent implements ITooltipComponent {
-
-        protected static final int PADDING = 4;
-        protected List<List<ITooltipComponent>> lines;
-        protected int width = 0;
-        protected int height = 0;
-
-        public InlineComponent(List<List<ITooltipComponent>> lines) {
-            this.lines = lines;
-
-            for (List<ITooltipComponent> line : this.lines) {
-                int lineWidth = -PADDING;
-                int lineHeight = 0;
-
-                for (ITooltipComponent component : line) {
-                    lineWidth += component.getWidth() + PADDING;
-                    lineHeight = Math.max(lineHeight, component.getHeight());
-                }
-
-                this.width = Math.max(this.width, lineWidth);
-                this.height += lineHeight;
-            }
-        }
-
-        @Override
-        public int getWidth() {
-            return this.width;
-        }
-
-        @Override
-        public int getHeight() {
-            return this.height;
-        }
-
-        public int getSpacing() {
-            return TooltipFontContext.DEFAULT_SPACING;
-        }
-
-        @Override
-        public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
-            final List<List<ITooltipComponent>> lines = new ArrayList<>();
-            int lineWidth = -PADDING;
-
-            lines.add(new ArrayList<>());
-
-            for (List<ITooltipComponent> line : this.lines) {
-                for (ITooltipComponent component : line) {
-
-                    if (lineWidth + component.getWidth() > maxWidth) {
-                        lineWidth = -PADDING;
-                        lines.add(new ArrayList<>());
-                    }
-
-                    lines.get(lines.size() - 1)
-                        .add(component);
-                    lineWidth += component.getWidth() + PADDING;
-                }
-            }
-
-            return new ITooltipComponent[] { new InlineComponent(lines) };
-        }
-
-        @Override
-        public void draw(int x, int y, int availableWidth, TooltipContext context) {
-            int offsetY = 0;
-
-            for (List<ITooltipComponent> line : this.lines) {
-                int lineWidth = 0;
-                int lineHeight = 0;
-
-                for (ITooltipComponent component : line) {
-                    component.draw(x + lineWidth, y + offsetY, availableWidth - lineWidth, context);
-                    lineWidth += component.getWidth() + PADDING;
-                    lineHeight = Math.max(lineHeight, component.getHeight());
-                }
-                offsetY += lineHeight;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return this.lines.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-
-            if (obj instanceof InlineComponent other) {
-                return this.lines.equals(other.lines);
-            }
-
-            return false;
-        }
-
-    }
-
+    protected static final int PADDING = 4;
     protected static final String SECTION_ID = "stats";
     protected boolean showOnlyIcons = false;
 
@@ -172,7 +77,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
         }
 
         if (this.showOnlyIcons && !attributeModifiersList.isEmpty()) {
-            return new TooltipLines(new InlineComponent(Collections.singletonList(attributeModifiersList)));
+            return new TooltipLines(new InlineComponent(Collections.singletonList(attributeModifiersList), PADDING, 0));
         } else {
             return new TooltipLines(attributeModifiersList);
         }

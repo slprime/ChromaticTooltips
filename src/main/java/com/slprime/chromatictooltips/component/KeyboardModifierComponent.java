@@ -16,8 +16,6 @@ public class KeyboardModifierComponent implements ITooltipComponent {
     protected EnumSet<TooltipModifier> supportedModifiers;
     protected TooltipModifier activeModifier;
     protected String text = "";
-    protected int width = 0;
-    protected int height = 0;
 
     public KeyboardModifierComponent(EnumSet<TooltipModifier> supportedModifiers, TooltipModifier activeModifier) {
         this.supportedModifiers = supportedModifiers;
@@ -40,18 +38,16 @@ public class KeyboardModifierComponent implements ITooltipComponent {
         }
 
         this.text = this.text.trim();
-        this.height = TooltipFontContext.getFontRenderer().FONT_HEIGHT;
-        this.width = TooltipFontContext.getStringWidth(this.text);
     }
 
     @Override
     public int getWidth() {
-        return this.width;
+        return TooltipFontContext.getStringWidth(this.text);
     }
 
     @Override
     public int getHeight() {
-        return this.supportedModifiers.isEmpty() ? 0 : this.height;
+        return this.supportedModifiers.isEmpty() ? 0 : TooltipFontContext.getFontRenderer().FONT_HEIGHT;
     }
 
     @Override

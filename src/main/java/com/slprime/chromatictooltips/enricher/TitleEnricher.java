@@ -28,10 +28,16 @@ public class TitleEnricher implements ITooltipEnricher {
         public StackTitleTooltipComponent(String title, ITooltipComponent identifierComponent) {
             super(title);
             this.identifierComponent = identifierComponent;
+        }
+
+        public int getWidth() {
+            int width = super.getWidth();
 
             if (identifierComponent.getWidth() > 0) {
-                this.width += TooltipFontContext.getStringWidth(" ") + identifierComponent.getWidth();
+                width += TooltipFontContext.getStringWidth(" ") + identifierComponent.getWidth();
             }
+
+            return width;
         }
 
         @Override

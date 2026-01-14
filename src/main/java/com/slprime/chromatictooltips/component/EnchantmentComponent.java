@@ -28,8 +28,6 @@ public class EnchantmentComponent implements ITooltipComponent {
     private final String title;
     private final List<String> hint;
     private int colorCodeIndex = 15;
-    private int width = 0;
-    private int height = 0;
 
     public EnchantmentComponent(String path, String title, List<String> hint) {
         this(new ResourceLocation(path.contains(":") ? path : ChromaticTooltips.MODID + ":" + path), title, hint);
@@ -42,24 +40,22 @@ public class EnchantmentComponent implements ITooltipComponent {
         this.title = title;
 
         this.marginLeft = EnricherConfig.enchantmentIconsEnabled ? ICON_SIZE + SPACE : 0;
-        this.width = Math.max(this.width, TooltipFontContext.getStringWidth(title));
-
-        for (String line : hint) {
-            this.width = Math.max(this.width, TooltipFontContext.getStringWidth(line));
-        }
-
-        this.width += this.marginLeft;
-        this.height = (hint.size() + 1) * TooltipFontContext.getFontHeight() - getSpacing();
     }
 
     @Override
     public int getWidth() {
-        return this.width;
+        int width = TooltipFontContext.getStringWidth(this.title);
+
+        for (String line : this.hint) {
+            width = Math.max(width, TooltipFontContext.getStringWidth(line));
+        }
+
+        return width + this.marginLeft;
     }
 
     @Override
     public int getHeight() {
-        return this.height;
+        return (this.hint.size() + 1) * TooltipFontContext.getFontHeight() - getSpacing();
     }
 
     @Override

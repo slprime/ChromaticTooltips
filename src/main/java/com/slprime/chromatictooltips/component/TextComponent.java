@@ -10,21 +10,16 @@ import com.slprime.chromatictooltips.util.TooltipFontContext;
 
 public class TextComponent implements ITooltipComponent {
 
-    protected List<String> textLines = null;
+    protected List<String> textLines = new ArrayList<>();
     protected int spacing = 2;
 
-    protected int width = 0;
-    protected int height = 0;
-
     public TextComponent(List<String> textLines, int spacing) {
-        this.textLines = textLines;
         this.spacing = spacing;
 
         for (String line : textLines) {
-            this.width = Math.max(this.width, TooltipFontContext.getStringWidth(line));
+            this.textLines.addAll(Arrays.asList(line.split("\n")));
         }
 
-        this.height = textLines.size() * TooltipFontContext.getFontHeight() - this.spacing;
     }
 
     public TextComponent(List<String> textLines) {
@@ -69,13 +64,19 @@ public class TextComponent implements ITooltipComponent {
     }
 
     @Override
-    public int getHeight() {
-        return this.height;
+    public int getWidth() {
+        int width = 0;
+
+        for (String line : this.textLines) {
+            width = Math.max(width, TooltipFontContext.getStringWidth(line));
+        }
+
+        return width;
     }
 
     @Override
-    public int getWidth() {
-        return this.width;
+    public int getHeight() {
+        return this.textLines.size() * TooltipFontContext.getFontHeight() - this.spacing;
     }
 
     @Override

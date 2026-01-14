@@ -21,8 +21,6 @@ public class ItemAttributeComponent implements ITooltipComponent {
     private final ResourceLocation resourceLocation;
     private final int marginLeft = ICON_SIZE + SPACE;
     private final String title;
-    private int width = 0;
-    private int height = 0;
 
     public ItemAttributeComponent(String path, String title) {
         this(new ResourceLocation(path.contains(":") ? path : ChromaticTooltips.MODID + ":" + path), title);
@@ -31,21 +29,16 @@ public class ItemAttributeComponent implements ITooltipComponent {
     protected ItemAttributeComponent(ResourceLocation resourceLocation, String title) {
         this.resourceLocation = resourceLocation;
         this.title = title;
-
-        this.width = Math.max(this.width, TooltipFontContext.getStringWidth(title));
-
-        this.width += this.marginLeft;
-        this.height = TooltipFontContext.getFontHeight() - getSpacing();
     }
 
     @Override
     public int getWidth() {
-        return this.width;
+        return TooltipFontContext.getStringWidth(this.title) + this.marginLeft;
     }
 
     @Override
     public int getHeight() {
-        return this.height;
+        return TooltipFontContext.getFontHeight() - getSpacing();
     }
 
     @Override
