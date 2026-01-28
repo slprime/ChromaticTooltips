@@ -11,7 +11,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
 import net.minecraft.client.resources.IResource;
@@ -22,16 +21,18 @@ import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
-import com.slprime.chromatictooltips.api.ITooltipRequestResolver;
 import com.slprime.chromatictooltips.api.TooltipBuilder;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipRequest;
 import com.slprime.chromatictooltips.api.TooltipStyle;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.SectionComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
+import com.slprime.chromatictooltips.config.GeneralConfig;
 import com.slprime.chromatictooltips.event.TooltipEnricherEvent;
+import com.slprime.chromatictooltips.util.ComponentRegistry;
 import com.slprime.chromatictooltips.util.Parser;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
@@ -39,18 +40,14 @@ public class TooltipHandler {
 
     private static class TooltipCache {
 
-        public long lastFrame = -1;
+        public long lastFrameTime = -1;
         public long lastUpdateTime = -1;
         public TooltipContext context = null;
         public TooltipRequest request = null;
         public int hashCode = -1;
 
-        public boolean isEmpty() {
-            return this.context == null;
-        }
-
-        public void clear() {
-            this.lastFrame = -1;
+        public void reset() {
+            this.lastFrameTime = -1;
             this.lastUpdateTime = -1;
             this.context = null;
             this.request = null;
@@ -58,8 +55,21 @@ public class TooltipHandler {
         }
     }
 
-    protected static final WeakHashMap<ITooltipComponent, String> tipLineComponents = new WeakHashMap<>();
-    protected static int nextComponentId = 0;
+    private static class ShowDelayTracker {
+
+        public long hoverStartTime = -1;
+        public boolean track = false;
+
+        public void reset() {
+            this.hoverStartTime = -1;
+            this.track = false;
+        }
+    }
+
+    protected static final int MIN_FPS = 8;
+    protected static final int MAX_FPS = 60;
+
+    protected static final ComponentRegistry componentRegistry = new ComponentRegistry();
 
     protected static final String CONFIG_FILE = "tooltip.json";
     protected static final String COMPONENT_PREFIX = "\u00A7z";
@@ -69,12 +79,11 @@ public class TooltipHandler {
 
     protected static final Parser parser = new Parser();
     protected static Class<? extends ITooltipRenderer> rendererClass = null;
-    protected static final List<ITooltipEnricher> tooltipEnrichers = new ArrayList<>();
-    protected static final List<ITooltipRequestResolver> requestResolvers = new ArrayList<>();
 
     protected static final TooltipCache tooltipCache = new TooltipCache();
+    protected static final ShowDelayTracker showDelayTracker = new ShowDelayTracker();
     protected static Point lastMousePosition = null;
-    protected static boolean ignoreLastTooltip = true;
+    protected static boolean renderLastTooltip = false;
 
     public static void reload() {
         TooltipHandler.otherTooltipRenderers.clear();
@@ -141,46 +150,16 @@ public class TooltipHandler {
     }
 
     public static String getComponentId(ITooltipComponent component) {
-        return TooltipHandler.tipLineComponents
-            .computeIfAbsent(component, k -> TooltipHandler.COMPONENT_PREFIX + (TooltipHandler.nextComponentId++));
+        return TooltipHandler.COMPONENT_PREFIX + TooltipHandler.componentRegistry.add(component);
     }
 
     public static ITooltipComponent getTooltipComponent(String line) {
         if (!line.startsWith(TooltipHandler.COMPONENT_PREFIX)) return null;
-        return TooltipHandler.tipLineComponents.entrySet()
-            .stream()
-            .filter(
-                entry -> entry.getValue()
-                    .equals(line))
-            .map(Map.Entry::getKey)
-            .findFirst()
-            .orElse(null);
-    }
-
-    public static void addEnricher(ITooltipEnricher enricher) {
-        TooltipHandler.tooltipEnrichers.add(enricher);
-    }
-
-    public static void addRequestResolver(ITooltipRequestResolver resolver) {
-        TooltipHandler.requestResolvers.add(resolver);
-    }
-
-    public static void addEnricherAfter(String sectionId, ITooltipEnricher enricher) {
-        int index = -1;
-
-        for (int i = 0; i < TooltipHandler.tooltipEnrichers.size(); i++) {
-            if (TooltipHandler.tooltipEnrichers.get(i)
-                .sectionId()
-                .equalsIgnoreCase(sectionId)) {
-                index = i;
-                break;
-            }
-        }
-
-        if (index != -1) {
-            TooltipHandler.tooltipEnrichers.add(index + 1, enricher);
-        } else {
-            TooltipHandler.tooltipEnrichers.add(enricher);
+        try {
+            final int token = Integer.parseInt(line.substring(TooltipHandler.COMPONENT_PREFIX.length()));
+            return TooltipHandler.componentRegistry.get(token);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
@@ -194,47 +173,78 @@ public class TooltipHandler {
     }
 
     public static void drawHoveringText(ItemStack stack, List<?> textLines) {
-        drawHoveringText(new TooltipRequest(null, stack, null, new TooltipLines(textLines), null));
+        drawHoveringText(new TooltipRequest(null, TooltipTarget.ofItem(stack), new TooltipLines(textLines), null));
     }
 
     public static void drawHoveringText(List<?> textLines) {
-        drawHoveringText(new TooltipRequest(null, null, null, new TooltipLines(textLines), null));
+        drawHoveringText(new TooltipRequest(null, TooltipTarget.ofItem(null), new TooltipLines(textLines), null));
     }
 
     public static void drawHoveringText(TooltipRequest request) {
 
-        if (request == null || request.itemStack == null && request.fluidStack == null && request.tooltip.isEmpty()) {
+        if (request == null || !request.target.isItem() && !request.target.isFluid() && request.tooltip.isEmpty()) {
             return;
         }
 
-        // maximize performance by limiting updates (60 FPS target)
-        if ((System.currentTimeMillis() - TooltipHandler.tooltipCache.lastFrame) > 16) {
+        final long currentTime = System.currentTimeMillis();
+
+        if (GeneralConfig.tooltipShowUpDelay > 0 && !handleTooltipShowDelay(request, currentTime)) {
+            return;
+        }
+
+        // FPS throttling
+        if ((currentTime - TooltipHandler.tooltipCache.lastFrameTime) > 1_000 / MAX_FPS) {
             final int currentHash = TooltipUtils.getMetaHash();
 
-            if (TooltipHandler.tooltipCache.isEmpty() || !request.sameSubjectAs(TooltipHandler.tooltipCache.request)) {
+            if (TooltipHandler.tooltipCache.context == null
+                || !request.sameSubjectAs(TooltipHandler.tooltipCache.request)) {
+                TooltipHandler.tooltipCache.lastUpdateTime = currentTime;
                 TooltipHandler.tooltipCache.request = request.copy();
+
                 TooltipHandler.tooltipCache.context = createTooltipContext(request, null);
-                TooltipHandler.tooltipCache.lastUpdateTime = System.currentTimeMillis();
             } else if (TooltipHandler.tooltipCache.hashCode != currentHash
-                || (System.currentTimeMillis() - TooltipHandler.tooltipCache.lastUpdateTime) > 100
+                || (currentTime - TooltipHandler.tooltipCache.lastUpdateTime) > 1_000 / MIN_FPS
                 || !request.equivalentTo(TooltipHandler.tooltipCache.request)) {
                     TooltipHandler.tooltipCache.request = request.copy();
+                    TooltipHandler.tooltipCache.lastUpdateTime = currentTime;
+
                     TooltipHandler.tooltipCache.context = createTooltipContext(
                         request,
                         TooltipHandler.tooltipCache.context);
-                    TooltipHandler.tooltipCache.lastUpdateTime = System.currentTimeMillis();
                 }
 
             TooltipHandler.tooltipCache.hashCode = currentHash;
-            TooltipHandler.tooltipCache.lastFrame = System.currentTimeMillis();
+            TooltipHandler.tooltipCache.lastFrameTime = currentTime;
         }
 
         TooltipHandler.lastMousePosition = request.mouse != null ? request.mouse : TooltipUtils.getMousePosition();
-        TooltipHandler.ignoreLastTooltip = false;
+        TooltipHandler.renderLastTooltip = true;
+    }
+
+    protected static boolean handleTooltipShowDelay(TooltipRequest request, long currentTime) {
+
+        if (TooltipHandler.showDelayTracker.hoverStartTime == -1) {
+            TooltipHandler.showDelayTracker.hoverStartTime = currentTime;
+        }
+
+        if ((currentTime - TooltipHandler.showDelayTracker.hoverStartTime) < GeneralConfig.tooltipShowUpDelay) {
+            final Point mouse = request.mouse != null ? request.mouse : TooltipUtils.getMousePosition();
+
+            if (TooltipHandler.lastMousePosition != null
+                && (mouse.x != TooltipHandler.lastMousePosition.x || mouse.y != TooltipHandler.lastMousePosition.y)) {
+                TooltipHandler.showDelayTracker.hoverStartTime = -1;
+            }
+
+            TooltipHandler.lastMousePosition = mouse;
+            TooltipHandler.showDelayTracker.track = true;
+            return false;
+        }
+
+        return true;
     }
 
     public static TooltipContext createTooltipContext(TooltipRequest request, TooltipContext previousContext) {
-        TooltipHandler.resolveRequest(request);
+        request = TooltipRegistry.resolveRequest(request);
         TooltipContext context;
 
         if (previousContext != null) {
@@ -251,14 +261,6 @@ public class TooltipHandler {
         return context;
     }
 
-    protected static void resolveRequest(TooltipRequest request) {
-        for (ITooltipRequestResolver resolver : TooltipHandler.requestResolvers) {
-            if (resolver.resolve(request)) {
-                break;
-            }
-        }
-    }
-
     protected static void enrichTooltip(TooltipContext context) {
         final TooltipModifier activeModifier = TooltipUtils.getActiveModifier();
         final TooltipStyle style = context.getRenderer()
@@ -272,7 +274,7 @@ public class TooltipHandler {
 
         context.setActiveModifier(activeModifier);
 
-        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+        for (ITooltipEnricher enricher : TooltipRegistry.getEnrichers()) {
             final EnumSet<TooltipModifier> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
             final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
 
@@ -285,7 +287,7 @@ public class TooltipHandler {
                     final SectionComponent section = new SectionComponent(
                         sectionId,
                         renderer.getSectionBox("sections." + sectionId),
-                        result.buildComponents(context));
+                        result.build(context));
 
                     if (place == EnricherPlace.HEADER) {
                         headerSections.add(section);
@@ -317,7 +319,7 @@ public class TooltipHandler {
     public static void updateSupportedModifiers(TooltipContext context) {
         final ITooltipRenderer renderer = context.getRenderer();
 
-        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+        for (ITooltipEnricher enricher : TooltipRegistry.getEnrichers()) {
             final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
 
             if ("itemInfo".equals(enricher.sectionId()) || place != EnricherPlace.BODY) {
@@ -355,7 +357,7 @@ public class TooltipHandler {
         final ITooltipRenderer renderer = context.getRenderer();
         context.setActiveModifier(TooltipModifier.NONE);
 
-        for (ITooltipEnricher enricher : TooltipHandler.tooltipEnrichers) {
+        for (ITooltipEnricher enricher : TooltipRegistry.getEnrichers()) {
             final EnumSet<TooltipModifier> modes = renderer.getEnricherModes(enricher.sectionId(), enricher.mode());
             final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
 
@@ -367,7 +369,7 @@ public class TooltipHandler {
                     final SectionComponent section = new SectionComponent(
                         sectionId,
                         renderer.getSectionBox("sections." + sectionId),
-                        result.buildComponents(context));
+                        result.build(context));
                     bodySections.add(section);
                 }
             }
@@ -377,32 +379,32 @@ public class TooltipHandler {
     }
 
     protected static ITooltipRenderer getRendererFor(TooltipRequest request) {
-        final String fallbackContext = request.itemStack != null ? "item"
-            : (request.fluidStack != null ? "fluid" : "default");
+        final String fallbackContext = request.target.isItem() ? "item"
+            : (request.target.isFluid() ? "fluid" : "default");
         final String context = request.context != null ? request.context : fallbackContext;
 
         if ("default".equals(context)) {
             return TooltipHandler.defaultTooltipRenderer;
         }
 
-        ITooltipRenderer renderer = findRenderer(context, request);
+        ITooltipRenderer renderer = findRenderer(context, request.target);
 
-        if (renderer == null && (request.itemStack != null || request.fluidStack != null)
+        if (renderer == null && (request.target.isItem() || request.target.isFluid())
             && !fallbackContext.equals(context)) {
-            renderer = findRenderer(fallbackContext, request);
+            renderer = findRenderer(fallbackContext, request.target);
         }
 
-        if (renderer == null && request.fluidStack != null) {
+        if (renderer == null && request.target.isFluid()) {
             renderer = findRenderer("item", null);
         }
 
         return renderer != null ? renderer : TooltipHandler.defaultTooltipRenderer;
     }
 
-    private static ITooltipRenderer findRenderer(String context, TooltipRequest request) {
+    private static ITooltipRenderer findRenderer(String context, TooltipTarget target) {
         for (ITooltipRenderer renderer : TooltipHandler.otherTooltipRenderers
             .getOrDefault(context, Collections.emptyList())) {
-            if (renderer.matches(request)) {
+            if (renderer.matches(target)) {
                 return renderer;
             }
         }
@@ -415,20 +417,28 @@ public class TooltipHandler {
 
     public static void drawLastTooltip() {
 
-        if (!TooltipHandler.tooltipCache.isEmpty() && !TooltipHandler.tooltipCache.context.isEmpty()
-            && !TooltipHandler.ignoreLastTooltip) {
+        if (TooltipHandler.tooltipCache.context == null) {
+
+            if (TooltipHandler.showDelayTracker.track) {
+                TooltipHandler.showDelayTracker.track = false;
+            } else {
+                TooltipHandler.showDelayTracker.hoverStartTime = -1;
+            }
+
+        } else if (TooltipHandler.renderLastTooltip) {
             TooltipHandler.tooltipCache.context
                 .drawAtMousePosition(TooltipHandler.lastMousePosition.x, TooltipHandler.lastMousePosition.y);
-            TooltipHandler.ignoreLastTooltip = true;
-        } else if (!TooltipHandler.tooltipCache.isEmpty() && TooltipHandler.ignoreLastTooltip) {
-            TooltipHandler.tooltipCache.clear();
+            TooltipHandler.renderLastTooltip = false;
+        } else {
+            TooltipHandler.tooltipCache.reset();
+            TooltipHandler.showDelayTracker.reset();
         }
 
     }
 
     public static boolean nextTooltipPage() {
 
-        if (!TooltipHandler.tooltipCache.isEmpty()) {
+        if (TooltipHandler.tooltipCache.context != null) {
             return TooltipHandler.tooltipCache.context.nextTooltipPage();
         }
 
@@ -437,7 +447,7 @@ public class TooltipHandler {
 
     public static boolean previousTooltipPage() {
 
-        if (!TooltipHandler.tooltipCache.isEmpty()) {
+        if (TooltipHandler.tooltipCache.context != null) {
             return TooltipHandler.tooltipCache.context.previousTooltipPage();
         }
 

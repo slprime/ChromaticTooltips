@@ -24,8 +24,8 @@ import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipRenderer;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipModifier;
-import com.slprime.chromatictooltips.api.TooltipRequest;
 import com.slprime.chromatictooltips.api.TooltipStyle;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.SectionComponent;
 import com.slprime.chromatictooltips.component.SpaceComponent;
 import com.slprime.chromatictooltips.component.TextComponent;
@@ -50,7 +50,7 @@ public class TooltipRenderer implements ITooltipRenderer {
     protected SectionBox navigationBox = null;
     protected SectionBox tooltipBox;
 
-    protected Predicate<TooltipRequest> filter;
+    protected Predicate<TooltipTarget> filter;
     protected TooltipStyle tooltipStyle;
 
     public TooltipRenderer(TooltipStyle style) {
@@ -137,8 +137,8 @@ public class TooltipRenderer implements ITooltipRenderer {
     }
 
     @Override
-    public boolean matches(TooltipRequest request) {
-        return this.filter == null || this.filter.test(request);
+    public boolean matches(TooltipTarget target) {
+        return this.filter == null || this.filter.test(target);
     }
 
     @Override

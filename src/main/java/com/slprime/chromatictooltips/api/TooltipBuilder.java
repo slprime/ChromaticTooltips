@@ -11,8 +11,7 @@ import net.minecraftforge.fluids.FluidStack;
 public class TooltipBuilder {
 
     protected String context;
-    protected ItemStack itemStack;
-    protected FluidStack fluidStack;
+    protected TooltipTarget target = TooltipTarget.EMPTY;
     protected TooltipLines textLines = new TooltipLines();
     protected Rectangle anchorBounds = new Rectangle(0, 0, 0, 0);
     protected Point mouse;
@@ -24,15 +23,18 @@ public class TooltipBuilder {
         return this;
     }
 
-    public TooltipBuilder stack(ItemStack stack) {
-        this.itemStack = stack;
-        this.fluidStack = null;
+    public TooltipBuilder target(ItemStack stack) {
+        this.target = TooltipTarget.ofItem(stack);
         return this;
     }
 
-    public TooltipBuilder stack(FluidStack stack) {
-        this.itemStack = null;
-        this.fluidStack = stack;
+    public TooltipBuilder target(FluidStack stack) {
+        this.target = TooltipTarget.ofFluid(stack);
+        return this;
+    }
+
+    public TooltipBuilder target(TooltipTarget target) {
+        this.target = target;
         return this;
     }
 
@@ -92,6 +94,6 @@ public class TooltipBuilder {
     }
 
     public TooltipRequest build() {
-        return new TooltipRequest(this.context, this.itemStack, this.fluidStack, this.textLines, this.mouse);
+        return new TooltipRequest(this.context, this.target, this.textLines, this.mouse);
     }
 }

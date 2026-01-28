@@ -4,19 +4,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.minecraft.util.EnumChatFormatting;
 
 import com.slprime.chromatictooltips.TooltipHandler;
-import com.slprime.chromatictooltips.component.DividerComponent;
+import com.slprime.chromatictooltips.TooltipRegistry;
 import com.slprime.chromatictooltips.component.ParagraphComponent;
 import com.slprime.chromatictooltips.component.SpaceComponent;
 import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.event.TextLinesConverterEvent;
-import com.slprime.chromatictooltips.util.TooltipFontContext;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class TooltipLines {
@@ -25,9 +24,6 @@ public class TooltipLines {
     public static final String CTRL_MODIFIER = "§!ctrl";
     public static final String SHIFT_MODIFIER = "§!shift";
 
-    protected static final Pattern DIVIDER_PATTERN = Pattern
-        .compile("^(\\s*)(?:§[0-9a-fk-or])*§([0-9a-f])(?:§[0-9a-fk-or])*-{3,}(?:§r)?$", Pattern.CASE_INSENSITIVE);
-    protected static final Pattern MODIFIER_PATTERN = Pattern.compile("^§!([a-z]+)$", Pattern.CASE_INSENSITIVE);
     public static final EnumChatFormatting BASE_COLOR = EnumChatFormatting.GRAY;
     protected static final String HEADER_SUFFIX = "§h";
     protected static final int HEADER_SPACING = 4;
@@ -104,10 +100,9 @@ public class TooltipLines {
         return this;
     }
 
-    public List<ITooltipComponent> buildComponents(TooltipContext context) {
+    public List<ITooltipComponent> build(TooltipContext context) {
         final List<ITooltipComponent> results = new ArrayList<>();
         final TextLinesConverterEvent event = new TextLinesConverterEvent(context, this.textLines);
-        final ITooltipRenderer renderer = context.getRenderer();
         TooltipUtils.postEvent(event);
 
         for (Object line : event.list) {
@@ -116,34 +111,37 @@ public class TooltipLines {
                 results.add(component);
             } else if ("".equals(line)) {
                 results.add(new ParagraphComponent());
-            } else if (line instanceof String str && !TooltipUtils.isBlacklistedLine(str)
-                && !detectModifierComponent(str)) {
-                    final Matcher matcher = DIVIDER_PATTERN.matcher(str);
+            } else if (line instanceof String str && !TooltipUtils.isBlacklistedLine(str)) {
+                final Map.Entry<Matcher, ITooltipLineConverter> lineConverterEntry = TooltipRegistry
+                    .getLineConverter(str);
 
-                    if (matcher.matches()) {
-                        final String colorCode = matcher.group(2);
-                        final int colorCodeIndex = "0123456789abcdef".indexOf(colorCode.toLowerCase());
-                        final int marginLeft = TooltipFontContext.getStringWidth(matcher.group(1));
+                if (lineConverterEntry != null) {
+                    final ITooltipLineConverter converter = lineConverterEntry.getValue();
+                    final Matcher matcher = lineConverterEntry.getKey();
+                    final ITooltipComponent convertedComponent = converter.convert(matcher, context);
 
-                        results.add(new DividerComponent(renderer.getSpacing("divider"), marginLeft, colorCodeIndex));
-                    } else if (str.endsWith(HEADER_SUFFIX)) {
-                        results.add(
-                            new TextComponent(
-                                TooltipUtils.applyBaseColorIfAbsent(
-                                    str.substring(0, str.length() - HEADER_SUFFIX.length()),
-                                    BASE_COLOR),
-                                HEADER_SPACING));
-                    } else {
-                        ITooltipComponent component = TooltipHandler.getTooltipComponent(str);
-
-                        if (component == null) {
-                            component = new TextComponent(TooltipUtils.applyBaseColorIfAbsent(str, BASE_COLOR));
-                        }
-
-                        results.add(component);
+                    if (convertedComponent != null) {
+                        results.add(convertedComponent);
                     }
 
+                } else if (str.endsWith(HEADER_SUFFIX)) {
+                    results.add(
+                        new TextComponent(
+                            TooltipUtils.applyBaseColorIfAbsent(
+                                str.substring(0, str.length() - HEADER_SUFFIX.length()),
+                                BASE_COLOR),
+                            HEADER_SPACING));
+                } else {
+                    ITooltipComponent component = TooltipHandler.getTooltipComponent(str);
+
+                    if (component == null) {
+                        component = new TextComponent(TooltipUtils.applyBaseColorIfAbsent(str, BASE_COLOR));
+                    }
+
+                    results.add(component);
                 }
+
+            }
 
         }
 
@@ -160,27 +158,6 @@ public class TooltipLines {
         }
 
         return results;
-    }
-
-    protected boolean detectModifierComponent(String str) {
-        final Matcher matcher = MODIFIER_PATTERN.matcher(str);
-
-        if (matcher.matches()) {
-            switch (matcher.group(1)
-                .toLowerCase()) {
-                case "shift":
-                    supports(TooltipModifier.SHIFT);
-                    return true;
-                case "ctrl":
-                    supports(TooltipModifier.CTRL);
-                    return true;
-                case "alt":
-                    supports(TooltipModifier.ALT);
-                    return true;
-            }
-        }
-
-        return false;
     }
 
     public boolean isEmpty() {

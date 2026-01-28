@@ -25,7 +25,7 @@ public interface ITooltipRenderer {
 
     public EnricherPlace getEnricherPlace(String enricherId, EnricherPlace defaultPlace);
 
-    public boolean matches(TooltipRequest request);
+    public boolean matches(TooltipTarget target);
 
     public List<SectionComponent> paginateTooltip(TooltipContext context);
 

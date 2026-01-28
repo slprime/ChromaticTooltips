@@ -24,4 +24,9 @@ public class GeneralConfig {
     @Config.DefaultInt(0)
     public static int maxWidth;
 
+    @Config.Comment("Delay in milliseconds before showing tooltips.")
+    @Config.RangeInt(min = 0, max = 10000)
+    @Config.DefaultInt(0)
+    public static int tooltipShowUpDelay;
+
 }

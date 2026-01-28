@@ -17,8 +17,7 @@ import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class TooltipContext {
 
-    protected ItemStack itemStack;
-    protected FluidStack fluidStack;
+    protected TooltipTarget target;
 
     protected long animationStartTime;
     protected final String context;
@@ -40,11 +39,9 @@ public class TooltipContext {
         this.renderer = renderer;
         this.context = request.context;
         this.animationStartTime = System.currentTimeMillis();
+        this.target = request.target;
 
-        this.itemStack = request.itemStack != null ? request.itemStack.copy() : null;
-        this.fluidStack = request.fluidStack != null ? request.fluidStack.copy() : null;
-
-        this.contextTooltip = request.tooltip.buildComponents(this);
+        this.contextTooltip = request.tooltip.build(this);
         this.scaleFactor = TooltipUtils.getTooltipScale();
     }
 
@@ -82,12 +79,16 @@ public class TooltipContext {
         return this.scaleFactor;
     }
 
-    public ItemStack getItemStack() {
-        return this.itemStack;
+    public ItemStack getItem() {
+        return this.target.getItem();
     }
 
-    public FluidStack getFluidStack() {
-        return this.fluidStack;
+    public FluidStack getFluid() {
+        return this.target.getFluid();
+    }
+
+    public TooltipTarget getTarget() {
+        return this.target;
     }
 
     public void supportModifiers(TooltipModifier... modifiers) {

@@ -9,6 +9,8 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
+import com.slprime.chromatictooltips.converter.DividerConverter;
+import com.slprime.chromatictooltips.converter.ModifierConverter;
 import com.slprime.chromatictooltips.enricher.ContextInfoEnricher;
 import com.slprime.chromatictooltips.enricher.EnchantmentEnricher;
 import com.slprime.chromatictooltips.enricher.FluidInfoEnricher;
@@ -55,20 +57,23 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         ClientRegistry.registerKeyBinding(nextPage);
         ClientRegistry.registerKeyBinding(previousPage);
 
-        TooltipHandler.addEnricher(new TitleEnricher());
-        TooltipHandler.addEnricher(new KeyboardModifierEnricher());
-        TooltipHandler.addEnricher(new ItemStatsEnricher(true));
-        TooltipHandler.addEnricher(new StackSizeEnricher());
-        TooltipHandler.addEnricher(new HotkeyEnricher());
-        TooltipHandler.addEnricher(new ItemInfoEnricher());
-        TooltipHandler.addEnricher(new FluidInfoEnricher());
-        TooltipHandler.addEnricher(new EnchantmentEnricher());
-        TooltipHandler.addEnricher(new ItemStatsEnricher(false));
-        TooltipHandler.addEnricher(new OreDictionaryEnricher());
-        TooltipHandler.addEnricher(new ContextInfoEnricher());
-        TooltipHandler.addEnricher(new ModInfoEnricher());
+        TooltipRegistry.addEnricher(new TitleEnricher());
+        TooltipRegistry.addEnricher(new KeyboardModifierEnricher());
+        TooltipRegistry.addEnricher(new ItemStatsEnricher(true));
+        TooltipRegistry.addEnricher(new StackSizeEnricher());
+        TooltipRegistry.addEnricher(new HotkeyEnricher());
+        TooltipRegistry.addEnricher(new ItemInfoEnricher());
+        TooltipRegistry.addEnricher(new FluidInfoEnricher());
+        TooltipRegistry.addEnricher(new EnchantmentEnricher());
+        TooltipRegistry.addEnricher(new ItemStatsEnricher(false));
+        TooltipRegistry.addEnricher(new OreDictionaryEnricher());
+        TooltipRegistry.addEnricher(new ContextInfoEnricher());
+        TooltipRegistry.addEnricher(new ModInfoEnricher());
 
         TooltipHandler.setRendererClass(TooltipRenderer.class);
+
+        TooltipRegistry.addLineConverter(ModifierConverter.PATTERN, new ModifierConverter());
+        TooltipRegistry.addLineConverter(DividerConverter.PATTERN, new DividerConverter());
     }
 
     @Override

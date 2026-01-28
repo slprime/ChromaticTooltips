@@ -51,12 +51,12 @@ public class ModInfoEnricher implements ITooltipEnricher {
         final TooltipLines components = new TooltipLines();
         UniqueIdentifier identifier = UNKNOWN_IDENTIFIER;
 
-        if (context.getItemStack() != null) {
-            identifier = getIdentifier(context.getItemStack());
-        } else if (context.getFluidStack() != null) {
+        if (context.getItem() != null) {
+            identifier = getIdentifier(context.getItem());
+        } else if (context.getFluid() != null) {
             identifier = new UniqueIdentifier(
                 FluidRegistry.getDefaultFluidName(
-                    context.getFluidStack()
+                    context.getFluid()
                         .getFluid()));
         } else {
             return null;

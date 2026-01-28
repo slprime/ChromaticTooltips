@@ -75,9 +75,9 @@ public class TitleEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (context.getItemStack() != null) {
+        if (context.getItem() != null) {
             return itemTitle(context);
-        } else if (context.getFluidStack() != null) {
+        } else if (context.getFluid() != null) {
             return fluidTitle(context);
         } else {
             return defaultTitle(context);
@@ -107,7 +107,7 @@ public class TitleEnricher implements ITooltipEnricher {
     }
 
     protected TooltipLines fluidTitle(TooltipContext context) {
-        final FluidStack fluid = context.getFluidStack();
+        final FluidStack fluid = context.getFluid();
         final String displayName = fluid.getFluid()
             .getLocalizedName(fluid);
         final ITooltipComponent identifierComponent = new TextComponent(
@@ -120,7 +120,7 @@ public class TitleEnricher implements ITooltipEnricher {
     }
 
     protected TooltipLines itemTitle(TooltipContext context) {
-        final ItemStack stack = context.getItemStack();
+        final ItemStack stack = context.getItem();
         final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(stack));
         final TitleEnricherEvent event = new TitleEnricherEvent(context, stack.getDisplayName());

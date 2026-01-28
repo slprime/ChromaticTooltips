@@ -58,7 +58,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final ItemStack stack = context.getItemStack();
+        final ItemStack stack = context.getItem();
 
         if (stack == null || this.showOnlyIcons && !EnricherConfig.attributeModifierIconsEnabled) {
             return null;

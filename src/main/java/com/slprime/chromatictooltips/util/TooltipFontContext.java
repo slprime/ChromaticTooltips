@@ -159,11 +159,15 @@ public class TooltipFontContext {
     }
 
     public static void drawString(String text, int x, int y) {
-        drawString(text, x, y, 0xffffffff);
+        drawString(text, x, y, 0xffffffff, context().shadow);
     }
 
     public static void drawString(String text, int x, int y, int color) {
-        getFontRenderer().drawString(text, x, y, color, context().shadow);
+        drawString(text, x, y, color, context().shadow);
+    }
+
+    public static void drawString(String text, int x, int y, int color, boolean shadow) {
+        getFontRenderer().drawString(text, x, y, color, shadow);
     }
 
 }

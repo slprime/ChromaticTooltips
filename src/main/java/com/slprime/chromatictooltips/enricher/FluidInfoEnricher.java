@@ -42,7 +42,7 @@ public class FluidInfoEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final FluidStack fluid = context.getFluidStack();
+        final FluidStack fluid = context.getFluid();
 
         if (fluid == null) {
             return null;

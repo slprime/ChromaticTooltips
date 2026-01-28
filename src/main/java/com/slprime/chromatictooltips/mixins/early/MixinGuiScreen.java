@@ -23,12 +23,7 @@ public class MixinGuiScreen extends Gui {
      */
     @Inject(method = "renderToolTip", at = @At("HEAD"), cancellable = true)
     protected void renderToolTip(ItemStack stack, int mouseX, int mouseY, CallbackInfo ci) {
-        TooltipHandler.drawHoveringText(
-            TooltipHandler.builder()
-                .stack(stack)
-                // .position(mouseX, mouseY)
-                .build());
-
+        TooltipHandler.drawHoveringText(stack, null);
         ci.cancel();
     }
 
@@ -40,11 +35,9 @@ public class MixinGuiScreen extends Gui {
     protected void drawHoveringText(List<String> textLines, int mouseX, int mouseY, FontRenderer font,
         CallbackInfo ci) {
 
-        TooltipHandler.drawHoveringText(
-            TooltipHandler.builder()
-                .lines(textLines)
-                // .position(mouseX, mouseY)
-                .build());
+        if (textLines != null && !textLines.isEmpty()) {
+            TooltipHandler.drawHoveringText(textLines);
+        }
 
         ci.cancel();
     }

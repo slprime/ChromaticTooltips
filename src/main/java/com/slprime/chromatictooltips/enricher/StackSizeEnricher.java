@@ -6,16 +6,13 @@ import java.util.EnumSet;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.IFluidContainerItem;
 
 import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
@@ -44,32 +41,19 @@ public class StackSizeEnricher implements ITooltipEnricher {
             return null;
         }
 
-        final ItemStack stack = context.getItemStack();
-        final FluidStack fluid = context.getFluidStack();
-        Fluid containedFluid = null;
-        long containedFluidAmount = 0;
-        long stackAmount = 0;
+        final TooltipTarget target = context.getTarget();
 
-        if (stack != null) {
-            final FluidStack stackFluid = getFluid(stack);
-            stackAmount = EnricherConfig.includeContainerInventoryEnabled ? getStackSize(stack) : stack.stackSize;
-
-            if (stackFluid != null) {
-                containedFluid = stackFluid.getFluid();
-                containedFluidAmount = stackFluid.amount;
-            }
-
-        } else if (fluid != null) {
-            stackAmount = fluid.amount;
-        } else {
+        if (!target.isItem() && !target.isFluid()) {
             return null;
         }
 
-        final StackSizeEnricherEvent event = new StackSizeEnricherEvent(
-            context,
-            stackAmount,
-            containedFluid,
-            containedFluidAmount);
+        long stackAmount = target.getStackAmount();
+
+        if (EnricherConfig.includeContainerInventoryEnabled && target.isItem()) {
+            stackAmount = getStackSize(target.getItem());
+        }
+
+        final StackSizeEnricherEvent event = new StackSizeEnricherEvent(context, stackAmount);
         TooltipUtils.postEvent(event);
 
         if (event.stackAmount <= 0) {
@@ -78,18 +62,21 @@ public class StackSizeEnricher implements ITooltipEnricher {
 
         final TooltipLines components = new TooltipLines();
 
-        if (stack != null && event.stackAmount > 1
-            && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount != stack.stackSize
+        if (target.isItem() && event.stackAmount > 1
+            && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount != target.getStackAmount()
                 || event.stackAmount >= 10_000)) {
-            components.line(formatStackSize(event.stackAmount, stack.getMaxStackSize()));
+            components.line(
+                formatStackSize(
+                    event.stackAmount,
+                    target.getItem()
+                        .getMaxStackSize()));
         }
 
-        if (stack != null && event.containedFluid != null && event.containedFluidAmount > 0) {
-            components.line(formatFluidAmount(event.stackAmount * event.containedFluidAmount));
+        if (target.isFluidContainer() && target.getContainedFluidAmount() > 0) {
+            components.line(formatFluidAmount(event.stackAmount * target.getContainedFluidAmount()));
         }
 
-        if (fluid != null && event.stackAmount > 0
-            && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount >= 10_000)) {
+        if (target.isFluid() && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount >= 10_000)) {
             components.line(formatFluidAmount(event.stackAmount));
         }
 
@@ -119,16 +106,6 @@ public class StackSizeEnricher implements ITooltipEnricher {
         }
 
         return stack.stackSize;
-    }
-
-    protected FluidStack getFluid(ItemStack stack) {
-        FluidStack fluidStack = FluidContainerRegistry.getFluidForFilledItem(stack);
-
-        if (fluidStack == null && stack.getItem() instanceof IFluidContainerItem fluidItem) {
-            fluidStack = fluidItem.getFluid(stack);
-        }
-
-        return fluidStack;
     }
 
     protected String formatStackSize(long stackAmount, int maxStackSize) {
