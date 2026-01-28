@@ -26,6 +26,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 import com.slprime.chromatictooltips.ChromaticTooltips;
 import com.slprime.chromatictooltips.api.TooltipModifier;
@@ -115,6 +116,7 @@ public class TooltipUtils {
 
     public static void incZLevel(float delta) {
         gui.incZLevel(delta);
+        GL11.glTranslatef(0f, 0f, delta);
     }
 
     public static RenderItem getItemRenderer() {
