@@ -102,7 +102,7 @@ public class TooltipLines {
 
     public List<ITooltipComponent> build(TooltipContext context) {
         final List<ITooltipComponent> results = new ArrayList<>();
-        final TextLinesConverterEvent event = new TextLinesConverterEvent(context, this.textLines);
+        final TextLinesConverterEvent event = new TextLinesConverterEvent(context.getTarget(), this.textLines);
         TooltipUtils.postEvent(event);
 
         for (Object line : event.list) {

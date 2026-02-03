@@ -11,6 +11,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.ModInfoEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
@@ -49,21 +50,22 @@ public class ModInfoEnricher implements ITooltipEnricher {
         }
 
         final TooltipLines components = new TooltipLines();
+        final TooltipTarget target = context.getTarget();
         UniqueIdentifier identifier = UNKNOWN_IDENTIFIER;
 
-        if (context.getItem() != null) {
-            identifier = getIdentifier(context.getItem());
-        } else if (context.getFluid() != null) {
+        if (target.isItem()) {
+            identifier = getIdentifier(target.getItem());
+        } else if (target.isFluid()) {
             identifier = new UniqueIdentifier(
                 FluidRegistry.getDefaultFluidName(
-                    context.getFluid()
+                    target.getFluid()
                         .getFluid()));
         } else {
             return null;
         }
 
         final ModInfoEnricherEvent event = new ModInfoEnricherEvent(
-            context,
+            target,
             nameFromIdentifier(identifier),
             identifier.modId,
             identifier.name);

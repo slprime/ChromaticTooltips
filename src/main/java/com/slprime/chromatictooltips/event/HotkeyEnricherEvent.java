@@ -2,14 +2,14 @@ package com.slprime.chromatictooltips.event;
 
 import java.util.Map;
 
-import com.slprime.chromatictooltips.api.TooltipContext;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 
 public class HotkeyEnricherEvent extends TooltipEvent {
 
     public Map<String, String> hotkeys;
 
-    public HotkeyEnricherEvent(TooltipContext context, Map<String, String> hotkeys) {
-        super(context);
+    public HotkeyEnricherEvent(TooltipTarget target, Map<String, String> hotkeys) {
+        super(target);
         this.hotkeys = hotkeys;
     }
 

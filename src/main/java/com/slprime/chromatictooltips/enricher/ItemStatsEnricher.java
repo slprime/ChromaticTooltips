@@ -19,6 +19,7 @@ import com.slprime.chromatictooltips.api.ItemStats;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.InlineComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.AttributeEnricherEvent;
@@ -58,14 +59,14 @@ public class ItemStatsEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final ItemStack stack = context.getItem();
 
-        if (stack == null || this.showOnlyIcons && !EnricherConfig.attributeModifierIconsEnabled) {
+        if (!context.getTarget()
+            .isItem() || this.showOnlyIcons && !EnricherConfig.attributeModifierIconsEnabled) {
             return null;
         }
 
         final boolean shownIcons = !this.showOnlyIcons && shownIcons(context);
-        final List<ItemStats> attributeModifiers = getAttributeModifiers(context);
+        final List<ItemStats> attributeModifiers = getAttributeModifiers(context.getTarget());
         final List<ITooltipComponent> attributeModifiersList = new ArrayList<>();
 
         for (final ItemStats attributeData : attributeModifiers) {
@@ -84,8 +85,8 @@ public class ItemStatsEnricher implements ITooltipEnricher {
 
     }
 
-    public static List<ItemStats> getAttributeModifiers(TooltipContext context) {
-        final ItemStack stack = context.getItem();
+    public static List<ItemStats> getAttributeModifiers(TooltipTarget target) {
+        final ItemStack stack = target.getItem();
         final List<ItemStats> stats = new ArrayList<>();
 
         for (Map.Entry<String, AttributeModifier> entry : stack.getAttributeModifiers()
@@ -128,7 +129,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
             addBurnTimeAttribute(stack, stats);
         }
 
-        final AttributeEnricherEvent event = new AttributeEnricherEvent(context, stats);
+        final AttributeEnricherEvent event = new AttributeEnricherEvent(target, stats);
         TooltipUtils.postEvent(event);
 
         Collections.sort(event.stats, (ItemStats a, ItemStats b) -> Double.compare(b.getOrder(), a.getOrder()));

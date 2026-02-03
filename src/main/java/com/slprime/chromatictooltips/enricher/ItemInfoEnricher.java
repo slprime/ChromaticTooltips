@@ -17,6 +17,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.event.ItemInfoEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
@@ -39,21 +40,20 @@ public class ItemInfoEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final ItemStack stack = context.getItem();
 
-        if (stack == null) {
+        if (!context.getTarget()
+            .isItem()) {
             return null;
         }
 
-        final ItemInfoEnricherEvent event = new ItemInfoEnricherEvent(context, itemInformation(stack.copy()));
-        TooltipUtils.postEvent(event);
-
-        return new TooltipLines(event.tooltip);
+        return new TooltipLines(getItemInformation(context.getTarget()));
     }
 
-    protected List<String> itemInformation(ItemStack stack) {
+    public static List<Object> getItemInformation(TooltipTarget target) {
         final Minecraft mc = TooltipUtils.mc();
         final List<String> tooltip = new ArrayList<>();
+        final ItemStack stack = target.getItem()
+            .copy();
         final String displayName = stack.getDisplayName();
         tooltip.add(displayName); // temporary name added for information gathering
 
@@ -73,10 +73,13 @@ public class ItemInfoEnricher implements ITooltipEnricher {
             tooltip.remove(0); // remove temporary name
         }
 
-        return tooltip;
+        final ItemInfoEnricherEvent event = new ItemInfoEnricherEvent(target, tooltip);
+        TooltipUtils.postEvent(event);
+
+        return event.tooltip;
     }
 
-    protected void addItemColorAndLore(ItemStack stack, List<String> arraylist, boolean advancedItemTooltips) {
+    protected static void addItemColorAndLore(ItemStack stack, List<String> arraylist, boolean advancedItemTooltips) {
         final NBTTagCompound nbttagcompound = stack.getTagCompound()
             .getCompoundTag("display");
 

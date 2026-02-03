@@ -54,7 +54,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
             stackAmount = getStackSize(target.getItem());
         }
 
-        final StackSizeEnricherEvent event = new StackSizeEnricherEvent(context, stackAmount);
+        final StackSizeEnricherEvent event = new StackSizeEnricherEvent(target, stackAmount);
         TooltipUtils.postEvent(event);
 
         if (event.stackAmount <= 0) {

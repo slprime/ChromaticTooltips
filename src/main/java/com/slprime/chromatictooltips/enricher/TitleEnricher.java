@@ -15,6 +15,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.event.TitleEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
@@ -76,9 +77,9 @@ public class TitleEnricher implements ITooltipEnricher {
     public TooltipLines build(TooltipContext context) {
 
         if (context.getItem() != null) {
-            return itemTitle(context);
+            return itemTitle(context.getTarget());
         } else if (context.getFluid() != null) {
-            return fluidTitle(context);
+            return fluidTitle(context.getTarget());
         } else {
             return defaultTitle(context);
         }
@@ -106,24 +107,24 @@ public class TitleEnricher implements ITooltipEnricher {
 
     }
 
-    protected TooltipLines fluidTitle(TooltipContext context) {
-        final FluidStack fluid = context.getFluid();
+    protected TooltipLines fluidTitle(TooltipTarget target) {
+        final FluidStack fluid = target.getFluid();
         final String displayName = fluid.getFluid()
             .getLocalizedName(fluid);
         final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(fluid));
-        final TitleEnricherEvent event = new TitleEnricherEvent(context, displayName);
+        final TitleEnricherEvent event = new TitleEnricherEvent(target, displayName);
         TooltipUtils.postEvent(event);
 
         return new TooltipLines(
             new StackTitleTooltipComponent(EnumChatFormatting.AQUA + event.displayName, identifierComponent));
     }
 
-    protected TooltipLines itemTitle(TooltipContext context) {
-        final ItemStack stack = context.getItem();
+    protected TooltipLines itemTitle(TooltipTarget target) {
+        final ItemStack stack = target.getItem();
         final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(stack));
-        final TitleEnricherEvent event = new TitleEnricherEvent(context, stack.getDisplayName());
+        final TitleEnricherEvent event = new TitleEnricherEvent(target, stack.getDisplayName());
         TooltipUtils.postEvent(event);
 
         return new TooltipLines(

@@ -13,6 +13,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.TextComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.HotkeyEnricherEvent;
@@ -42,11 +43,11 @@ public class HotkeyEnricher implements ITooltipEnricher {
             return null;
         }
 
-        return new TooltipLines(hotkeysListComponent(context));
+        return new TooltipLines(hotkeysListComponent(context.getTarget()));
     }
 
-    protected TextComponent hotkeysListComponent(TooltipContext context) {
-        final HotkeyEnricherEvent event = new HotkeyEnricherEvent(context, new HashMap<>());
+    protected TextComponent hotkeysListComponent(TooltipTarget target) {
+        final HotkeyEnricherEvent event = new HotkeyEnricherEvent(target, new HashMap<>());
         TooltipUtils.postEvent(event);
 
         event.hotkeys.remove(null);

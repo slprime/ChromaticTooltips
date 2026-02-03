@@ -38,7 +38,7 @@ public class ContextInfoEnricher implements ITooltipEnricher {
             lines.remove(0);
         }
 
-        final ContextInfoEnricherEvent event = new ContextInfoEnricherEvent(context, lines);
+        final ContextInfoEnricherEvent event = new ContextInfoEnricherEvent(context.getTarget(), lines);
         TooltipUtils.postEvent(event);
 
         return new TooltipLines(event.tooltip);

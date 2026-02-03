@@ -10,7 +10,6 @@ import java.util.Map;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnumEnchantmentType;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 
@@ -20,6 +19,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.EnchantmentComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.EnchantmentEnricherEvent;
@@ -69,13 +69,13 @@ public class EnchantmentEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final ItemStack stack = context.getItem();
 
-        if (stack == null) {
+        if (!context.getTarget()
+            .isItem()) {
             return null;
         }
 
-        final List<EnchantmentData> enchantments = getEnchantments(context);
+        final List<EnchantmentData> enchantments = getEnchantments(context.getTarget());
         final TooltipLines enchantmentsList = new TooltipLines();
 
         for (final EnchantmentData enchantmentData : enchantments) {
@@ -85,17 +85,17 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         return enchantmentsList;
     }
 
-    public static List<EnchantmentData> getEnchantments(TooltipContext context) {
+    public static List<EnchantmentData> getEnchantments(TooltipTarget target) {
         final List<EnchantmentData> enchantmentList = new ArrayList<>();
 
-        for (Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(context.getItem())
+        for (Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(target.getItem())
             .entrySet()) {
             if (Enchantment.enchantmentsList[entry.getKey()] != null) {
                 enchantmentList.add(new EnchantmentData(entry.getKey(), entry.getValue()));
             }
         }
 
-        final EnchantmentEnricherEvent event = new EnchantmentEnricherEvent(context, enchantmentList);
+        final EnchantmentEnricherEvent event = new EnchantmentEnricherEvent(target, enchantmentList);
         TooltipUtils.postEvent(event);
 
         Collections.sort(
@@ -119,7 +119,8 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         final String icon = enchantmentIcons.getOrDefault(enchantmentData.enchantment.type, "star");
         final EnumChatFormatting color = enchantmentColors
             .getOrDefault(enchantmentData.enchantment.type, EnumChatFormatting.YELLOW);
-        final List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint : Collections.emptyList();
+        final List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint
+            : Collections.emptyList();
 
         return new EnchantmentComponent(
             "enchantments/" + icon + ".png",

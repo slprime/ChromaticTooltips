@@ -5,8 +5,11 @@ import java.awt.Rectangle;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.component.SectionComponent;
 
-public class RenderTooltipEvent extends TooltipEvent {
+import cpw.mods.fml.common.eventhandler.Event;
 
+public class RenderTooltipEvent extends Event {
+
+    public final TooltipContext context;
     public final SectionComponent page;
     public final int x;
     public final int y;
@@ -14,7 +17,7 @@ public class RenderTooltipEvent extends TooltipEvent {
     public final int height;
 
     public RenderTooltipEvent(TooltipContext context, SectionComponent page, Rectangle position) {
-        super(context);
+        this.context = context;
         this.page = page;
 
         this.x = position.x;

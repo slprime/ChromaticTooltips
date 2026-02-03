@@ -2,10 +2,14 @@ package com.slprime.chromatictooltips.event;
 
 import com.slprime.chromatictooltips.api.TooltipContext;
 
-public class TooltipEnricherEvent extends TooltipEvent {
+import cpw.mods.fml.common.eventhandler.Event;
+
+public class TooltipEnricherEvent extends Event {
+
+    public final TooltipContext context;
 
     public TooltipEnricherEvent(TooltipContext context) {
-        super(context);
+        this.context = context;
     }
 
 }

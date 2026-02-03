@@ -18,6 +18,7 @@ import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
+import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.event.FluidInfoEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
@@ -42,20 +43,18 @@ public class FluidInfoEnricher implements ITooltipEnricher {
 
     @Override
     public TooltipLines build(TooltipContext context) {
-        final FluidStack fluid = context.getFluid();
 
-        if (fluid == null) {
+        if (!context.getTarget()
+            .isFluid()) {
             return null;
         }
 
-        final FluidInfoEnricherEvent event = new FluidInfoEnricherEvent(context, fluidInformation(fluid));
-        TooltipUtils.postEvent(event);
-
-        return new TooltipLines(event.tooltip);
+        return new TooltipLines(getFluidInformation(context.getTarget()));
     }
 
-    protected List<String> fluidInformation(FluidStack fluidStack) {
+    public static List<Object> getFluidInformation(TooltipTarget target) {
         final List<String> tooltip = new ArrayList<>();
+        final FluidStack fluidStack = target.getFluid();
         final ItemStack potion = getPotion(fluidStack);
 
         if (potion != null && potion.getItem() instanceof ItemPotion) {
@@ -63,10 +62,13 @@ public class FluidInfoEnricher implements ITooltipEnricher {
                 .addInformation(potion, Minecraft.getMinecraft().thePlayer, tooltip, false);
         }
 
-        return tooltip;
+        final FluidInfoEnricherEvent event = new FluidInfoEnricherEvent(target, tooltip);
+        TooltipUtils.postEvent(event);
+
+        return event.tooltip;
     }
 
-    public static ItemStack getPotion(FluidStack fluidStack) {
+    protected static ItemStack getPotion(FluidStack fluidStack) {
         if (fluidStack == null) return null;
         final ItemStack fillStack = fillStack(glassBottle, fluidStack);
 
@@ -77,7 +79,7 @@ public class FluidInfoEnricher implements ITooltipEnricher {
         return null;
     }
 
-    public static ItemStack fillStack(ItemStack itemStack, FluidStack fluid) {
+    protected static ItemStack fillStack(ItemStack itemStack, FluidStack fluid) {
         if (itemStack == null || itemStack.stackSize != 1) return null;
         Item item = itemStack.getItem();
 
