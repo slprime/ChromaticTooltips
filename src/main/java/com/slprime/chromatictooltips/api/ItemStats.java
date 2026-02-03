@@ -10,6 +10,7 @@ import net.minecraft.util.StatCollector;
 
 import com.slprime.chromatictooltips.component.ItemAttributeComponent;
 import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.util.NumberFormat;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class ItemStats {
@@ -19,9 +20,9 @@ public class ItemStats {
         public ArmorStats(int damageReduceAmount) {
             super(
                 TooltipUtils
-                    .translate("enricher.attributes.armor.text", TooltipUtils.formatNumbers(damageReduceAmount)),
+                    .translate("enricher.attributes.armor.text", NumberFormat.formatWithCommas(damageReduceAmount)),
                 TooltipUtils
-                    .translate("enricher.attributes.armor.icon", TooltipUtils.formatNumbers(damageReduceAmount)),
+                    .translate("enricher.attributes.armor.icon", NumberFormat.formatWithCommas(damageReduceAmount)),
                 damageReduceAmount,
                 "attributes/armor.png");
         }
@@ -95,12 +96,12 @@ public class ItemStats {
             super(
                 TooltipUtils.translate(
                     "enricher.attributes.durability.text",
-                    TooltipUtils.formatNumbers(durability),
-                    TooltipUtils.formatNumbers(maxDurability)),
+                    NumberFormat.formatWithCommas(durability),
+                    NumberFormat.formatWithCommas(maxDurability)),
                 TooltipUtils.translate(
                     "enricher.attributes.durability.icon",
-                    TooltipUtils.formatNumbers(durability),
-                    TooltipUtils.formatNumbers(maxDurability)),
+                    NumberFormat.formatWithCommas(durability),
+                    NumberFormat.formatWithCommas(maxDurability)),
                 durability,
                 "attributes/durability.png");
         }
@@ -116,8 +117,8 @@ public class ItemStats {
 
         public BurnTimeStats(int burnTime) {
             super(
-                TooltipUtils.translate("enricher.attributes.fuel.text", TooltipUtils.formatNumbers(burnTime)),
-                TooltipUtils.translate("enricher.attributes.fuel.icon", TooltipUtils.formatNumbers(burnTime)),
+                TooltipUtils.translate("enricher.attributes.fuel.text", NumberFormat.formatWithCommas(burnTime)),
+                TooltipUtils.translate("enricher.attributes.fuel.icon", NumberFormat.formatWithCommas(burnTime)),
                 burnTime,
                 "attributes/fuel.png");
         }
@@ -173,7 +174,7 @@ public class ItemStats {
     }
 
     public ItemStats(String attributeName, double value, StatsOperator operator, String icon) {
-        final String attributeValue = TooltipUtils.formatNumbers(Math.abs(value));
+        final String attributeValue = NumberFormat.formatWithCommas(Math.abs(value));
         final String dir = value >= 0 ? "plus" : "minus";
 
         this.textLine = TooltipUtils
@@ -228,6 +229,10 @@ public class ItemStats {
         return this.textLine != null
             ? new TextComponent(TooltipUtils.applyBaseColorIfAbsent(this.textLine, TooltipLines.BASE_COLOR))
             : null;
+    }
+
+    public String getTextLine() {
+        return this.textLine;
     }
 
 }

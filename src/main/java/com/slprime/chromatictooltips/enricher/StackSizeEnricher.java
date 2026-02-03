@@ -13,7 +13,8 @@ import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipTarget;
-import com.slprime.chromatictooltips.config.EnricherConfig;
+import com.slprime.chromatictooltips.config.StackAmountConfig;
+import com.slprime.chromatictooltips.config.StackAmountConfig.FormatConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
@@ -37,7 +38,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!EnricherConfig.stackSizeEnabled) {
+        if (!StackAmountConfig.stackAmountEnabled) {
             return null;
         }
 
@@ -49,7 +50,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
 
         long stackAmount = target.getStackAmount();
 
-        if (EnricherConfig.includeContainerInventoryEnabled && target.isItem()) {
+        if (StackAmountConfig.includeContainerInventory && target.isItem()) {
             stackAmount = getStackSize(target.getItem());
         }
 
@@ -63,10 +64,10 @@ public class StackSizeEnricher implements ITooltipEnricher {
         final TooltipLines components = new TooltipLines();
 
         if (target.isItem() && event.stackAmount > 1
-            && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount != target.getStackAmount()
+            && (!StackAmountConfig.showOnlyWhenOverMaxStackSize || event.stackAmount != target.getStackAmount()
                 || event.stackAmount >= 10_000)) {
             components.line(
-                formatStackSize(
+                formatItemAmount(
                     event.stackAmount,
                     target.getItem()
                         .getMaxStackSize()));
@@ -76,7 +77,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
             components.line(formatFluidAmount(event.stackAmount * target.getContainedFluidAmount()));
         }
 
-        if (target.isFluid() && (!EnricherConfig.showOnlyWhenOverStackSizeEnabled || event.stackAmount >= 10_000)) {
+        if (target.isFluid() && (!StackAmountConfig.showOnlyWhenOverMaxStackSize || event.stackAmount >= 10_000)) {
             components.line(formatFluidAmount(event.stackAmount));
         }
 
@@ -108,46 +109,36 @@ public class StackSizeEnricher implements ITooltipEnricher {
         return stack.stackSize;
     }
 
-    protected String formatStackSize(long stackAmount, int maxStackSize) {
-        return format(
-            stackAmount,
-            maxStackSize,
-            "enricher.stacksize.item.full",
-            "enricher.stacksize.item.short",
-            "enricher.stacksize.item");
+    protected String formatItemAmount(long stackAmount, int maxStackSize) {
+        return format(stackAmount, maxStackSize, "enricher.stacksize.item", StackAmountConfig.itemConfig);
     }
 
     protected String formatFluidAmount(long stackAmount) {
-        return format(
-            stackAmount,
-            144,
-            "enricher.stacksize.fluid.full",
-            "enricher.stacksize.fluid.short",
-            "enricher.stacksize.fluid");
+        return format(stackAmount, 144, "enricher.stacksize.fluid", StackAmountConfig.fluidConfig);
     }
 
-    protected String format(long stackAmount, int maxStackSize, String fullPattern, String shortPattern,
-        String stackPattern) {
+    protected String format(long stackAmount, long maxStackSize, String pattern, FormatConfig formatter) {
 
         if (stackAmount <= maxStackSize || maxStackSize == 1) {
-            return TooltipUtils.translate(stackPattern, TooltipUtils.formatNumbers(stackAmount));
+            return TooltipUtils
+                .translate(pattern, formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower));
         }
 
-        final int remainder = (int) (stackAmount % maxStackSize);
+        final long remainder = stackAmount % maxStackSize;
 
         if (remainder > 0) {
             return TooltipUtils.translate(
-                fullPattern,
-                TooltipUtils.formatNumbers(stackAmount),
-                TooltipUtils.formatNumbers(stackAmount / maxStackSize),
-                TooltipUtils.formatNumbers(maxStackSize),
-                TooltipUtils.formatNumbers(remainder));
+                pattern + ".full",
+                formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower),
+                formatter.numberFormat.format(stackAmount / maxStackSize, formatter.detailCutoffPower),
+                formatter.numberFormat.format(maxStackSize, formatter.detailCutoffPower),
+                formatter.numberFormat.format(remainder, formatter.detailCutoffPower));
         } else {
             return TooltipUtils.translate(
-                shortPattern,
-                TooltipUtils.formatNumbers(stackAmount),
-                TooltipUtils.formatNumbers(stackAmount / maxStackSize),
-                TooltipUtils.formatNumbers(maxStackSize));
+                pattern + ".short",
+                formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower),
+                formatter.numberFormat.format(stackAmount / maxStackSize, formatter.detailCutoffPower),
+                formatter.numberFormat.format(maxStackSize, formatter.detailCutoffPower));
         }
     }
 

@@ -88,6 +88,14 @@ public class EnchantmentComponent implements ITooltipComponent {
         return new ITooltipComponent[] { new EnchantmentComponent(resourceLocation, this.title, lines) };
     }
 
+    public String getTitle() {
+        return this.title;
+    }
+
+    public List<String> getHint() {
+        return this.hint;
+    }
+
     @Override
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
         final int lineHeight = TooltipFontContext.getFontHeight();

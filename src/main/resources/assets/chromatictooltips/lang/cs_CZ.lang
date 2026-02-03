@@ -48,7 +48,3 @@ chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[alt]§r
-
-nei.options.inventory.hotkeysHelpText=Zobrazit nápovědu klávesových zkratek
-nei.options.inventory.hotkeysHelpText.true=Ano
-nei.options.inventory.hotkeysHelpText.false=Ne

@@ -85,7 +85,7 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         return enchantmentsList;
     }
 
-    protected static List<EnchantmentData> getEnchantments(TooltipContext context) {
+    public static List<EnchantmentData> getEnchantments(TooltipContext context) {
         final List<EnchantmentData> enchantmentList = new ArrayList<>();
 
         for (Map.Entry<Integer, Integer> entry : EnchantmentHelper.getEnchantments(context.getItem())
@@ -102,6 +102,16 @@ public class EnchantmentEnricher implements ITooltipEnricher {
             event.enchantments,
             (EnchantmentData a, EnchantmentData b) -> a.enchantment.type.compareTo(b.enchantment.type));
 
+        for (EnchantmentData enchantmentData : event.enchantments) {
+            if (enchantmentData.hint.isEmpty()) {
+                final String hintKey = enchantmentData.enchantment.getName() + ".hint";
+
+                if (!hintKey.equals(StatCollector.translateToLocal(hintKey))) {
+                    enchantmentData.hint.add(StatCollector.translateToLocal(hintKey));
+                }
+            }
+        }
+
         return event.enchantments;
     }
 
@@ -109,15 +119,7 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         final String icon = enchantmentIcons.getOrDefault(enchantmentData.enchantment.type, "star");
         final EnumChatFormatting color = enchantmentColors
             .getOrDefault(enchantmentData.enchantment.type, EnumChatFormatting.YELLOW);
-        List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint : Collections.emptyList();
-
-        if (EnricherConfig.enchantmentHintEnabled && hint.isEmpty()) {
-            final String hintKey = enchantmentData.enchantment.getName() + ".hint";
-
-            if (!hintKey.equals(StatCollector.translateToLocal(hintKey))) {
-                hint.add(StatCollector.translateToLocal(hintKey));
-            }
-        }
+        final List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint : Collections.emptyList();
 
         return new EnchantmentComponent(
             "enchantments/" + icon + ".png",

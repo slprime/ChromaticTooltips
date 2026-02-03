@@ -172,7 +172,7 @@ public class TooltipRenderUtils {
         if (stackAmount < 10_000) {
             amountString = String.valueOf(stackAmount);
         } else {
-            amountString = ReadableNumberConverter.INSTANCE.toWideReadableForm(stackAmount);
+            amountString = NumberFormat.SI.format(stackAmount);
         }
 
         if (isFluid) {

@@ -295,9 +295,9 @@ public class TooltipRenderer implements ITooltipRenderer {
 
         if (scaleShift != 1.0f) {
             GL11.glTranslatef(x, y, 0);
-            GL11.glScalef(scaleShift, scaleShift, 1);
+            GL11.glScalef(scaleShift, scaleShift, scaleShift);
             section.draw(0, 0, section.getWidth(), context);
-            GL11.glScalef(1 / scaleShift, 1 / scaleShift, 1);
+            GL11.glScalef(1 / scaleShift, 1 / scaleShift, 1 / scaleShift);
         } else {
             section.draw(x, y, section.getWidth(), context);
         }

@@ -4,6 +4,7 @@ import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.config.GeneralConfig;
+import com.slprime.chromatictooltips.config.StackAmountConfig;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -18,6 +19,7 @@ public class CommonProxy {
         try {
             ConfigurationManager.registerConfig(GeneralConfig.class);
             ConfigurationManager.registerConfig(EnricherConfig.class);
+            ConfigurationManager.registerConfig(StackAmountConfig.class);
         } catch (ConfigException e) {
             throw new RuntimeException(e);
         }

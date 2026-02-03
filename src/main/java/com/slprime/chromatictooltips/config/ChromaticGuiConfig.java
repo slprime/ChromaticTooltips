@@ -15,6 +15,7 @@ public class ChromaticGuiConfig extends SimpleGuiConfig {
             ChromaticTooltips.NAME,
             true,
             GeneralConfig.class,
-            EnricherConfig.class);
+            EnricherConfig.class,
+            StackAmountConfig.class);
     }
 }

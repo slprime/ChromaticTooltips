@@ -20,7 +20,7 @@ chromatictooltips.enricher.modinfo.identifier=§5%s:§8%s
 chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 - §7%s
 chromatictooltips.enricher.hotkeys.keybind.keys=§8 / §6
 
-chromatictooltips.enricher.oreDictionary.title=§7矿物词典名称: 
+chromatictooltips.enricher.oreDictionary.title=§7矿物词典名称:
 chromatictooltips.enricher.oreDictionary.entry=§8 - §e%s
 
 chromatictooltips.enricher.attributes.addition.text.plus=§9+%s %s
@@ -48,7 +48,3 @@ chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[Ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[Ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[Alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[Alt]§r
-
-nei.options.inventory.hotkeysHelpText=显示热键帮助文本
-nei.options.inventory.hotkeysHelpText.true=是
-nei.options.inventory.hotkeysHelpText.false=否

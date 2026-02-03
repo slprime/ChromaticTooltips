@@ -9,7 +9,7 @@ import com.slprime.chromatictooltips.util.SectionBox;
 
 public interface ITooltipRenderer {
 
-    public static final int DEFAULT_Z_INDEX = 300;
+    public static final int DEFAULT_Z_INDEX = 150;
 
     public TooltipStyle getStyle();
 

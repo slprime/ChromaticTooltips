@@ -65,7 +65,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
         }
 
         final boolean shownIcons = !this.showOnlyIcons && shownIcons(context);
-        final List<ItemStats> attributeModifiers = getAttributeModifiers(context, stack);
+        final List<ItemStats> attributeModifiers = getAttributeModifiers(context);
         final List<ITooltipComponent> attributeModifiersList = new ArrayList<>();
 
         for (final ItemStats attributeData : attributeModifiers) {
@@ -84,7 +84,8 @@ public class ItemStatsEnricher implements ITooltipEnricher {
 
     }
 
-    protected static List<ItemStats> getAttributeModifiers(TooltipContext context, ItemStack stack) {
+    public static List<ItemStats> getAttributeModifiers(TooltipContext context) {
+        final ItemStack stack = context.getItem();
         final List<ItemStats> stats = new ArrayList<>();
 
         for (Map.Entry<String, AttributeModifier> entry : stack.getAttributeModifiers()

@@ -1,13 +1,6 @@
 package com.slprime.chromatictooltips.util;
 
 import java.awt.Point;
-import java.math.BigInteger;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,26 +45,10 @@ public class TooltipUtils {
     protected static Predicate<String> tooltipBlacklistLinesPattern;
     protected static final Pattern COLOR_CODES_PATTERN = Pattern
         .compile("^\\s*§([0-9A-F]).*", Pattern.CASE_INSENSITIVE);
-    private static final Map<Locale, DecimalFormat> decimalFormatters = new HashMap<>();
     private static final int ALT_HASH = 1 << 27;
     private static final int SHIFT_HASH = 1 << 26;
     private static final int CTRL_HASH = 1 << 25;
     private static final GuiHook gui = new GuiHook();
-
-    private static DecimalFormat getDecimalFormat() {
-        return decimalFormatters.computeIfAbsent(Locale.getDefault(Locale.Category.FORMAT), locale -> {
-            final DecimalFormat numberFormat = new DecimalFormat(); // uses the necessary locale inside anyway
-            numberFormat.setGroupingUsed(true);
-            numberFormat.setMaximumFractionDigits(2);
-            numberFormat.setRoundingMode(RoundingMode.HALF_UP);
-
-            final DecimalFormatSymbols decimalFormatSymbols = numberFormat.getDecimalFormatSymbols();
-            decimalFormatSymbols.setGroupingSeparator(','); // Use sensible separator for best clarity.
-            numberFormat.setDecimalFormatSymbols(decimalFormatSymbols);
-
-            return numberFormat;
-        });
-    }
 
     public static Minecraft mc() {
         return Minecraft.getMinecraft();
@@ -84,18 +61,6 @@ public class TooltipUtils {
 
     public static String translate(String key, Object... params) {
         return StatCollector.translateToLocalFormatted(ChromaticTooltips.MODID + "." + key, params);
-    }
-
-    public static String formatNumbers(BigInteger aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(long aNumber) {
-        return getDecimalFormat().format(aNumber);
-    }
-
-    public static String formatNumbers(double aNumber) {
-        return getDecimalFormat().format(aNumber);
     }
 
     public static boolean postEvent(Event event) {
