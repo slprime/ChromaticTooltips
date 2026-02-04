@@ -145,7 +145,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
     }
 
     private static void addDurabilityAttribute(ItemStack stack, List<ItemStats> stats) {
-        if (stack.isItemStackDamageable() && !stack.getHasSubtypes()) {
+        if (stack.isItemStackDamageable() && !stack.getHasSubtypes() && !stack.isStackable()) {
             final int maxDurability = stack.getMaxDamage();
             final int durability = maxDurability - stack.getItemDamage();
             stats.add(new ItemStats.DurabilityStats(durability, maxDurability));
