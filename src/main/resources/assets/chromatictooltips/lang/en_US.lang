@@ -49,14 +49,14 @@ chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[alt]§r
 
-chromatictooltips.config.general.transformEnabled=Enable Tooltip Transformations
-chromatictooltips.config.general.tooltipBlacklistLines=Tooltip Blacklist (One Per Line)
+chromatictooltips.config.general.transformDisabled=Disable Animations
+chromatictooltips.config.general.tooltipBlacklistLines=Blacklist (Regexp)
 chromatictooltips.config.general.scaleFactor=Tooltip Scale Factor
-chromatictooltips.config.general.maxWidth=Maximum Tooltip Width
+chromatictooltips.config.general.maxWidth=Tooltip Max Width
 chromatictooltips.config.general.tooltipShowUpDelay=Tooltip Show Up Delay
 
-chromatictooltips.config.enricher.hotkeysEnabled=Enable Hotkeys
-chromatictooltips.config.enricher.attributeModifierIconsEnabled=Enable Attribute Modifier Icons
+chromatictooltips.config.enricher.hotkeysEnabled=Show Hotkeys
+chromatictooltips.config.enricher.attributeModifierIconsEnabled=Show Attribute Icons
 chromatictooltips.config.enricher.burnTimeEnabled=Show Burn Time
 chromatictooltips.config.enricher.durabilityEnabled=Show Durability
 chromatictooltips.config.enricher.oreDictionaryEnabled=Show Ore Dictionary Names
@@ -64,11 +64,11 @@ chromatictooltips.config.enricher.enchantmentIconsEnabled=Show Enchantment Icons
 chromatictooltips.config.enricher.enchantmentHintEnabled=Show Enchantment Hints
 chromatictooltips.config.enricher.keyboardModifiersEnabled=Show Keyboard Modifiers
 chromatictooltips.config.enricher.modInfoEnabled=Show Mod Information
+chromatictooltips.config.enricher.stackAmountEnabled=Show Stack Amount
 
-chromatictooltips.config.stackamount.enabled=Enabled
 chromatictooltips.config.stackamount.itemAmount=Item Amount
 chromatictooltips.config.stackamount.fluidAmount=Fluid Amount
 chromatictooltips.config.stackamount.includeContainerInventory=Include Container Inventory
-chromatictooltips.config.stackamount.showOnlyWhenOverMaxStackSize=Show Only When Over Max Stack Size
+chromatictooltips.config.stackamount.hideWhenBelowMaxStackSize=Hide When Below Max Stack Size
 chromatictooltips.config.stackamount.numberFormat=Number Format
 chromatictooltips.config.stackamount.detailCutoffPower=Number Format Detail Threshold

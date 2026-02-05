@@ -16,6 +16,11 @@ public class EnricherConfig {
     @Config.DefaultBoolean(true)
     public static boolean attributeModifierIconsEnabled = true;
 
+    @Config.Comment("Show stack amount information in tooltips.")
+    @Config.LangKey("chromatictooltips.config.enricher.stackAmountEnabled")
+    @Config.DefaultBoolean(true)
+    public static boolean stackAmountEnabled = true;
+
     @Config.Comment("Show burn time information in tooltips.")
     @Config.LangKey("chromatictooltips.config.enricher.burnTimeEnabled")
     @Config.DefaultBoolean(true)

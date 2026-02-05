@@ -7,20 +7,15 @@ import com.slprime.chromatictooltips.util.NumberFormat;
 @Config(modid = ChromaticTooltips.MODID, category = "stackamount")
 public class StackAmountConfig {
 
-    @Config.Comment("Enable stack amount information in tooltips.")
-    @Config.LangKey("chromatictooltips.config.stackamount.enabled")
-    @Config.DefaultBoolean(true)
-    public static boolean stackAmountEnabled;
-
     @Config.Comment("Include container inventory when calculating stack amounts.")
     @Config.LangKey("chromatictooltips.config.stackamount.includeContainerInventory")
     @Config.DefaultBoolean(true)
     public static boolean includeContainerInventory;
 
-    @Config.Comment("Show stack amount information only when exceeding the item's max stack size.")
-    @Config.LangKey("chromatictooltips.config.stackamount.showOnlyWhenOverMaxStackSize")
-    @Config.DefaultBoolean(false)
-    public static boolean showOnlyWhenOverMaxStackSize;
+    @Config.Comment("Hide stack amount when the stack size is below the item's max stack size.")
+    @Config.LangKey("chromatictooltips.config.stackamount.hideWhenBelowMaxStackSize")
+    @Config.DefaultBoolean(true)
+    public static boolean hideWhenBelowMaxStackSize;
 
     @Config.Comment("Configuration for item stack amounts.")
     @Config.LangKey("chromatictooltips.config.stackamount.itemAmount")

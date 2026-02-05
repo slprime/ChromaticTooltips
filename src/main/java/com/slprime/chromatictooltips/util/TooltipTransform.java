@@ -117,7 +117,7 @@ public class TooltipTransform {
     }
 
     public boolean isAnimated() {
-        return GeneralConfig.transformEnabled && this.keyframes.size() > 1;
+        return !GeneralConfig.transformDisabled && this.keyframes.size() > 1;
     }
 
     public void pushTransformMatrix(double x, double y, double width, double height, long lastFrameTime) {

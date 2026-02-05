@@ -13,6 +13,7 @@ import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipTarget;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.config.StackAmountConfig;
 import com.slprime.chromatictooltips.config.StackAmountConfig.FormatConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
@@ -38,7 +39,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!StackAmountConfig.stackAmountEnabled) {
+        if (!EnricherConfig.stackAmountEnabled) {
             return null;
         }
 
@@ -64,7 +65,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
         final TooltipLines components = new TooltipLines();
 
         if (target.isItem() && event.stackAmount > 1
-            && (!StackAmountConfig.showOnlyWhenOverMaxStackSize || event.stackAmount != target.getStackAmount()
+            && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount != target.getStackAmount()
                 || event.stackAmount >= 10_000)) {
             components.line(
                 formatItemAmount(
@@ -77,7 +78,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
             components.line(formatFluidAmount(event.stackAmount * target.getContainedFluidAmount()));
         }
 
-        if (target.isFluid() && (!StackAmountConfig.showOnlyWhenOverMaxStackSize || event.stackAmount >= 10_000)) {
+        if (target.isFluid() && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount >= 10_000)) {
             components.line(formatFluidAmount(event.stackAmount));
         }
 
