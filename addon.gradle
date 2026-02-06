@@ -1,0 +1,17 @@
+apply plugin: "maven-publish"
+
+afterEvaluate {
+    publishing {
+        publications.withType(MavenPublication).named('maven') { pub ->
+            pub.groupId = 'com.github.slprime'
+            pub.artifactId = 'ChromaticTooltips'
+            pub.version = project.version
+        }
+
+        repositories {
+            maven {
+                url = file("$buildDir/maven-repo")
+            }
+        }
+    }
+}
