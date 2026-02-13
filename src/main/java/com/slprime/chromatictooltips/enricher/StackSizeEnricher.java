@@ -65,8 +65,8 @@ public class StackSizeEnricher implements ITooltipEnricher {
         final TooltipLines components = new TooltipLines();
 
         if (target.isItem() && event.stackAmount > 1
-            && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount != target.getStackAmount()
-                || event.stackAmount >= 10_000)) {
+            && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > target.getItem()
+                .getMaxStackSize() || event.stackAmount != target.getStackAmount())) {
             components.line(
                 formatItemAmount(
                     event.stackAmount,
@@ -78,7 +78,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
             components.line(formatFluidAmount(event.stackAmount * target.getContainedFluidAmount()));
         }
 
-        if (target.isFluid() && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount >= 10_000)) {
+        if (target.isFluid() && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > 144)) {
             components.line(formatFluidAmount(event.stackAmount));
         }
 
