@@ -2,11 +2,14 @@ package com.slprime.chromatictooltips.enricher;
 
 import java.awt.Point;
 import java.util.EnumSet;
+import java.util.function.LongFunction;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
+import com.gtnewhorizon.gtnhlib.util.numberformatting.options.CompactOptions;
 import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
@@ -15,11 +18,17 @@ import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.config.StackAmountConfig;
-import com.slprime.chromatictooltips.config.StackAmountConfig.FormatConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class StackSizeEnricher implements ITooltipEnricher {
+
+    private static CompactOptions fluidCompactOptions = new CompactOptions()
+        .setCompactThreshold(pow10(StackAmountConfig.fluidCompactThreshold));
+    private static CompactOptions itemCompactOptions = new CompactOptions()
+        .setCompactThreshold(pow10(StackAmountConfig.itemCompactThreshold));
+    private static int itemCompactThreshold = StackAmountConfig.itemCompactThreshold;
+    private static int fluidCompactThreshold = StackAmountConfig.fluidCompactThreshold;
 
     @Override
     public String sectionId() {
@@ -55,31 +64,35 @@ public class StackSizeEnricher implements ITooltipEnricher {
             stackAmount = getStackSize(target.getItem());
         }
 
+        final TooltipLines components = new TooltipLines();
         final StackSizeEnricherEvent event = new StackSizeEnricherEvent(target, stackAmount);
         TooltipUtils.postEvent(event);
 
-        if (event.stackAmount <= 0) {
-            return null;
+        if (target.isItem()) {
+            final int maxStackSize = target.getItem()
+                .getMaxStackSize();
+
+            if (event.stackAmount > 1
+                && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > maxStackSize
+                    || event.stackAmount != target.getStackAmount())) {
+                components.line(format(event.stackAmount, maxStackSize, "enricher.stacksize.item", this::formatNumber));
+            }
+
+            if (target.isFluidContainer() && target.getContainedFluidAmount() > 0) {
+                final long fluidAmount = target.getContainedFluidAmount();
+
+                if (event.stackAmount > 1) {
+                    components.line(
+                        format(event.stackAmount * fluidAmount, 144, "enricher.stacksize.fluid", this::formatFluid));
+                }
+
+                components.line(format(fluidAmount, 144, "enricher.stacksize.container", this::formatFluid));
+            }
         }
 
-        final TooltipLines components = new TooltipLines();
-
-        if (target.isItem() && event.stackAmount > 1
-            && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > target.getItem()
-                .getMaxStackSize() || event.stackAmount != target.getStackAmount())) {
-            components.line(
-                formatItemAmount(
-                    event.stackAmount,
-                    target.getItem()
-                        .getMaxStackSize()));
-        }
-
-        if (target.isFluidContainer() && target.getContainedFluidAmount() > 0) {
-            components.line(formatFluidAmount(event.stackAmount * target.getContainedFluidAmount()));
-        }
-
-        if (target.isFluid() && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > 144)) {
-            components.line(formatFluidAmount(event.stackAmount));
+        if (target.isFluid() && event.stackAmount > 0
+            && (!StackAmountConfig.hideWhenBelowMaxStackSize || event.stackAmount > 144)) {
+            components.line(format(event.stackAmount, 144, "enricher.stacksize.fluid", this::formatFluid));
         }
 
         return components;
@@ -110,37 +123,59 @@ public class StackSizeEnricher implements ITooltipEnricher {
         return stack.stackSize;
     }
 
-    protected String formatItemAmount(long stackAmount, int maxStackSize) {
-        return format(stackAmount, maxStackSize, "enricher.stacksize.item", StackAmountConfig.itemConfig);
-    }
-
-    protected String formatFluidAmount(long stackAmount) {
-        return format(stackAmount, 144, "enricher.stacksize.fluid", StackAmountConfig.fluidConfig);
-    }
-
-    protected String format(long stackAmount, long maxStackSize, String pattern, FormatConfig formatter) {
+    protected String format(long stackAmount, long maxStackSize, String pattern, LongFunction<String> valueFormatter) {
 
         if (stackAmount <= maxStackSize || maxStackSize == 1) {
-            return TooltipUtils
-                .translate(pattern, formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower));
+            return TooltipUtils.translate(pattern, valueFormatter.apply(stackAmount));
         }
 
         final long remainder = stackAmount % maxStackSize;
+        final long units = stackAmount / maxStackSize;
 
         if (remainder > 0) {
             return TooltipUtils.translate(
                 pattern + ".full",
-                formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower),
-                formatter.numberFormat.format(stackAmount / maxStackSize, formatter.detailCutoffPower),
-                formatter.numberFormat.format(maxStackSize, formatter.detailCutoffPower),
-                formatter.numberFormat.format(remainder, formatter.detailCutoffPower));
+                valueFormatter.apply(stackAmount),
+                formatNumber(units),
+                valueFormatter.apply(maxStackSize),
+                valueFormatter.apply(remainder));
         } else {
             return TooltipUtils.translate(
                 pattern + ".short",
-                formatter.numberFormat.format(stackAmount, formatter.detailCutoffPower),
-                formatter.numberFormat.format(stackAmount / maxStackSize, formatter.detailCutoffPower),
-                formatter.numberFormat.format(maxStackSize, formatter.detailCutoffPower));
+                valueFormatter.apply(stackAmount),
+                formatNumber(units),
+                valueFormatter.apply(maxStackSize));
         }
+    }
+
+    public String formatFluid(long stackAmount) {
+
+        if (StackAmountConfig.fluidCompactThreshold != StackSizeEnricher.fluidCompactThreshold) {
+            StackSizeEnricher.fluidCompactThreshold = StackAmountConfig.fluidCompactThreshold;
+            StackSizeEnricher.fluidCompactOptions.setCompactThreshold(pow10(StackSizeEnricher.fluidCompactThreshold));
+        }
+
+        return NumberFormatUtil.formatFluidCompact(stackAmount, StackSizeEnricher.fluidCompactOptions);
+    }
+
+    public String formatNumber(long stackAmount) {
+
+        if (StackAmountConfig.itemCompactThreshold != StackSizeEnricher.itemCompactThreshold) {
+            StackSizeEnricher.itemCompactThreshold = StackAmountConfig.itemCompactThreshold;
+            StackSizeEnricher.itemCompactOptions.setCompactThreshold(pow10(StackSizeEnricher.itemCompactThreshold));
+        }
+
+        return NumberFormatUtil.formatNumberCompact(stackAmount, StackSizeEnricher.itemCompactOptions);
+    }
+
+    private static long pow10(int exp) {
+        long r = 1;
+
+        for (int i = 0; i < exp; i++) {
+            r *= 10;
+        }
+
+        return r;
     }
 
 }

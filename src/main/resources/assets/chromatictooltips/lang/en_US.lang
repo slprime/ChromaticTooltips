@@ -10,9 +10,13 @@ chromatictooltips.enricher.stacksize.item=§8Count: §7%s
 chromatictooltips.enricher.stacksize.item.short=§8Count: §7%s = %s * %s
 chromatictooltips.enricher.stacksize.item.full=§8Count: §7%s = %s * %s + %s
 
-chromatictooltips.enricher.stacksize.fluid=§8Amount: §7%s L
-chromatictooltips.enricher.stacksize.fluid.short=§8Amount: §7%s L = %s * %s L
-chromatictooltips.enricher.stacksize.fluid.full=§8Amount: §7%s L = %s * %s L + %s L
+chromatictooltips.enricher.stacksize.fluid=§8Amount: §7%s
+chromatictooltips.enricher.stacksize.fluid.short=§8Amount: §7%s = %s * %s
+chromatictooltips.enricher.stacksize.fluid.full=§8Amount: §7%s = %s * %s + %s
+
+chromatictooltips.enricher.stacksize.container=§8Container Amount: §7%s
+chromatictooltips.enricher.stacksize.container.short=§8Container Amount: §7%s = %s * %s
+chromatictooltips.enricher.stacksize.container.full=§8Container Amount: §7%s = %s * %s + %s
 
 chromatictooltips.enricher.modinfo.modname=§5%s
 chromatictooltips.enricher.modinfo.identifier=§5%s:§8%s
@@ -66,9 +70,7 @@ chromatictooltips.config.enricher.keyboardModifiersEnabled=Show Keyboard Modifie
 chromatictooltips.config.enricher.modInfoEnabled=Show Mod Information
 chromatictooltips.config.enricher.stackAmountEnabled=Show Stack Amount
 
-chromatictooltips.config.stackamount.itemAmount=Item Amount
-chromatictooltips.config.stackamount.fluidAmount=Fluid Amount
+chromatictooltips.config.stackamount.itemCompactThreshold=Item Compact Threshold
+chromatictooltips.config.stackamount.fluidCompactThreshold=Fluid Compact Threshold
 chromatictooltips.config.stackamount.includeContainerInventory=Include Container Inventory
 chromatictooltips.config.stackamount.hideWhenBelowMaxStackSize=Hide When Below Max Stack Size
-chromatictooltips.config.stackamount.numberFormat=Number Format
-chromatictooltips.config.stackamount.detailCutoffPower=Number Format Detail Threshold

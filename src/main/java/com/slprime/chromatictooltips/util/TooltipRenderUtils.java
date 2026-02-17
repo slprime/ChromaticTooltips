@@ -15,6 +15,7 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import com.slprime.chromatictooltips.ChromaticTooltips;
 
 public class TooltipRenderUtils {
@@ -172,7 +173,7 @@ public class TooltipRenderUtils {
         if (stackAmount < 10_000) {
             amountString = String.valueOf(stackAmount);
         } else {
-            amountString = NumberFormat.SI.format(stackAmount);
+            amountString = NumberFormatUtil.formatNumberCompact(stackAmount);
         }
 
         if (isFluid) {

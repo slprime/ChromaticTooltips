@@ -1,4 +1,4 @@
 dependencies {
     // runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.48-GTNH:dev")
-    implementation("com.github.GTNewHorizons:GTNHLib:0.9.0:dev") { transitive = false }
+    implementation("com.github.GTNewHorizons:GTNHLib:0.9.6:dev") { transitive = false }
 }

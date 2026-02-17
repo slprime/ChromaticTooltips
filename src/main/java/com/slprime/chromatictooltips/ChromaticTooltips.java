@@ -14,7 +14,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     modid = ChromaticTooltips.MODID,
     version = Tags.VERSION,
     name = ChromaticTooltips.NAME,
-    dependencies = "required-after:gtnhlib@[0.7.10,);",
+    dependencies = "required-after:gtnhlib@[0.9.6,);",
     acceptedMinecraftVersions = "[1.7.10]")
 public class ChromaticTooltips {
 
