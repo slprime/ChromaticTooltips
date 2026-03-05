@@ -8,7 +8,9 @@ import java.util.Map;
 
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.StatCollector;
 
@@ -23,6 +25,8 @@ import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.InlineComponent;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.AttributeEnricherEvent;
+import com.slprime.chromatictooltips.event.FoodStatsEvent;
+import com.slprime.chromatictooltips.util.FoodEffectHelper;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class ItemStatsEnricher implements ITooltipEnricher {
@@ -129,6 +133,10 @@ public class ItemStatsEnricher implements ITooltipEnricher {
             addBurnTimeAttribute(stack, stats);
         }
 
+        if (EnricherConfig.foodStatsEnabled) {
+            addFoodStats(target, stats);
+        }
+
         final AttributeEnricherEvent event = new AttributeEnricherEvent(target, stats);
         TooltipUtils.postEvent(event);
 
@@ -157,6 +165,47 @@ public class ItemStatsEnricher implements ITooltipEnricher {
         if (burnTime > 0) {
             stats.add(new ItemStats.BurnTimeStats(burnTime));
         }
+    }
+
+    private static void addFoodStats(TooltipTarget target, List<ItemStats> stats) {
+        final FoodStatsEvent event = new FoodStatsEvent(target, 0, 0.0F, Collections.emptyList());
+        final ItemStack stack = target.getItem();
+        float potionEffectProbability = 0.0F;
+        int potionId = 0;
+
+        if (stack.getItem() instanceof ItemFood food) {
+            event.hunger = food.func_150905_g(stack);
+            event.saturationModifier = food.func_150906_h(stack);
+
+            if (EnricherConfig.foodEffectsEnabled) {
+                event.effects = FoodEffectHelper.getFoodEffects(stack);
+                potionEffectProbability = food.potionEffectProbability;
+                potionId = food.potionId;
+            }
+        }
+
+        if (!TooltipUtils.postEvent(event)) {
+
+            if (event.hunger > 0) {
+                stats.add(new ItemStats.HungerStats(event.hunger));
+
+                if (event.saturationModifier > 0.0F) {
+                    stats.add(new ItemStats.SaturationStats(event.hunger * event.saturationModifier * 2.0F));
+                }
+            }
+
+            if (EnricherConfig.foodEffectsEnabled) {
+                for (PotionEffect potionEffect : event.effects) {
+                    if (potionEffect.getPotionID() == potionId) {
+                        stats.add(ItemStats.PotionEffectStats.of(potionEffect, potionEffectProbability));
+                    } else {
+                        stats.add(ItemStats.PotionEffectStats.of(potionEffect));
+                    }
+                }
+            }
+
+        }
+
     }
 
 }

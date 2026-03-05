@@ -6,6 +6,8 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.StatCollector;
 
 import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
@@ -121,6 +123,79 @@ public class ItemStats {
                 TooltipUtils.translate("enricher.attributes.fuel.icon", NumberFormatUtil.formatNumber(burnTime)),
                 burnTime,
                 "attributes/fuel.png");
+        }
+
+    }
+
+    public static class HungerStats extends ItemStats {
+
+        public HungerStats(double hunger) {
+            super(
+                TooltipUtils.translate("enricher.attributes.hunger.text", NumberFormatUtil.formatNumber(hunger / 2f)),
+                TooltipUtils.translate("enricher.attributes.hunger.icon", NumberFormatUtil.formatNumber(hunger / 2f)),
+                hunger,
+                "attributes/hunger.png");
+        }
+
+        public int getOrder() {
+            return 10_001;
+        }
+
+    }
+
+    public static class SaturationStats extends ItemStats {
+
+        public SaturationStats(double saturation) {
+            super(
+                TooltipUtils
+                    .translate("enricher.attributes.saturation.text", NumberFormatUtil.formatNumber(saturation / 2f)),
+                TooltipUtils
+                    .translate("enricher.attributes.saturation.icon", NumberFormatUtil.formatNumber(saturation / 2f)),
+                saturation,
+                "attributes/saturation.png");
+        }
+
+        public int getOrder() {
+            return 10_000;
+        }
+
+    }
+
+    public static class PotionEffectStats extends ItemStats {
+
+        public PotionEffectStats(String textLine, int duration) {
+            super(textLine, null, duration, null);
+        }
+
+        public static PotionEffectStats of(PotionEffect potionEffect, float probability) {
+            String textLine = StatCollector.translateToLocal(potionEffect.getEffectName())
+                .trim();
+            final boolean isBadEffect = Potion.potionTypes[potionEffect.getPotionID()].isBadEffect();
+            final int amplifier = potionEffect.getAmplifier();
+
+            if (amplifier > 0) {
+                final String potencyKey = "potion.potency." + amplifier;
+                final String potency = StatCollector.translateToLocal(potencyKey);
+                textLine += " "
+                    + (potency.equals(potencyKey) ? NumberFormatUtil.formatNumber(amplifier + 1) : potency.trim());
+            }
+
+            if (probability < 1.0F) {
+                final String key = isBadEffect ? "enricher.attributes.food.potion.text.minus.probability"
+                    : "enricher.attributes.food.potion.text.plus.probability";
+                textLine = TooltipUtils
+                    .translate(key, textLine, Potion.getDurationString(potionEffect), Math.round(probability * 100.0F));
+            } else {
+                final String key = isBadEffect ? "enricher.attributes.food.potion.text.minus"
+                    : "enricher.attributes.food.potion.text.plus";
+                textLine = TooltipUtils.translate(key, textLine, Potion.getDurationString(potionEffect));
+            }
+
+            return new PotionEffectStats(textLine, potionEffect.getDuration() / 1200);
+        }
+
+        public static PotionEffectStats of(PotionEffect potionEffect) {
+            return of(potionEffect, 1.0F);
         }
 
     }

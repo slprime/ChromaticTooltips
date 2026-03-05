@@ -46,6 +46,18 @@ chromatictooltips.enricher.attributes.fuel.icon=%s
 chromatictooltips.enricher.attributes.armor.text=§9+%s Armor
 chromatictooltips.enricher.attributes.armor.icon=%s
 
+chromatictooltips.enricher.attributes.hunger.text=§2Food: %s
+chromatictooltips.enricher.attributes.hunger.icon=%s
+
+chromatictooltips.enricher.attributes.saturation.text=§6Saturation: %s
+chromatictooltips.enricher.attributes.saturation.icon=%s
+
+chromatictooltips.enricher.attributes.food.potion.text.plus=§b%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.plus.probability=§b%s (%s) [%s%%]
+
+chromatictooltips.enricher.attributes.food.potion.text.minus=§c%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.minus.probability=§c%s (%s) [%s%%]
+
 chromatictooltips.enricher.keyboard-modifier.shift.inactive=§8[shift]§r
 chromatictooltips.enricher.keyboard-modifier.shift.active=§6[shift]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[ctrl]§r
@@ -62,6 +74,8 @@ chromatictooltips.config.general.tooltipShowUpDelay=Tooltip Show Up Delay
 chromatictooltips.config.enricher.hotkeysEnabled=Show Hotkeys
 chromatictooltips.config.enricher.attributeModifierIconsEnabled=Show Attribute Icons
 chromatictooltips.config.enricher.burnTimeEnabled=Show Burn Time
+chromatictooltips.config.enricher.foodStatsEnabled=Show Food Stats
+chromatictooltips.config.enricher.foodEffectsEnabled=Show Food Effects
 chromatictooltips.config.enricher.durabilityEnabled=Show Durability
 chromatictooltips.config.enricher.oreDictionaryEnabled=Show Ore Dictionary Names
 chromatictooltips.config.enricher.enchantmentIconsEnabled=Show Enchantment Icons
