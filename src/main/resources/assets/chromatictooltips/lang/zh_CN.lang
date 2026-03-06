@@ -46,6 +46,18 @@ chromatictooltips.enricher.attributes.fuel.icon=%s
 chromatictooltips.enricher.attributes.armor.text=§9+%s 护甲值
 chromatictooltips.enricher.attributes.armor.icon=%s
 
+chromatictooltips.enricher.attributes.hunger.text=§2饥饿值: %s
+chromatictooltips.enricher.attributes.hunger.icon=%s
+
+chromatictooltips.enricher.attributes.saturation.text=§6饱和度: %s
+chromatictooltips.enricher.attributes.saturation.icon=%s
+
+chromatictooltips.enricher.attributes.food.potion.text.plus=§b%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.plus.probability=§b%s (%s) [%s%%]
+
+chromatictooltips.enricher.attributes.food.potion.text.minus=§c%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.minus.probability=§c%s (%s) [%s%%]
+
 chromatictooltips.enricher.keyboard-modifier.shift.inactive=§8[Shift]§r
 chromatictooltips.enricher.keyboard-modifier.shift.active=§6[Shift]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[Ctrl]§r
@@ -62,6 +74,8 @@ chromatictooltips.config.general.tooltipShowUpDelay=工具提示显示延迟
 chromatictooltips.config.enricher.hotkeysEnabled=显示快捷键
 chromatictooltips.config.enricher.attributeModifierIconsEnabled=显示属性图标
 chromatictooltips.config.enricher.burnTimeEnabled=显示燃烧时间
+chromatictooltips.config.enricher.foodStatsEnabled=显示食物属性
+chromatictooltips.config.enricher.foodEffectsEnabled=显示食物效果
 chromatictooltips.config.enricher.durabilityEnabled=显示耐久度
 chromatictooltips.config.enricher.oreDictionaryEnabled=显示矿物词典名称
 chromatictooltips.config.enricher.enchantmentIconsEnabled=显示附魔图标
@@ -74,3 +88,4 @@ chromatictooltips.config.stackamount.itemCompactThreshold=物品紧凑阈值
 chromatictooltips.config.stackamount.fluidCompactThreshold=流体紧凑阈值
 chromatictooltips.config.stackamount.includeContainerInventory=包含容器物品栏
 chromatictooltips.config.stackamount.hideWhenBelowMaxStackSize=低于最大堆叠大小时隐藏
+
