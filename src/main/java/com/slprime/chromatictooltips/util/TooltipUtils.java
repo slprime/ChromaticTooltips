@@ -68,11 +68,11 @@ public class TooltipUtils {
         return MinecraftForge.EVENT_BUS.post(event);
     }
 
-    public static void registerEventListener(Object handler) {
+    public static void registerEventListener(Object listener) {
         FMLCommonHandler.instance()
             .bus()
-            .register(handler);
-        MinecraftForge.EVENT_BUS.register(handler);
+            .register(listener);
+        MinecraftForge.EVENT_BUS.register(listener);
     }
 
     public static GuiContainer getGuiContainer() {
