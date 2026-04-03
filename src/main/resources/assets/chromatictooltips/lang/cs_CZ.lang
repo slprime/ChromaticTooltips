@@ -14,10 +14,14 @@ chromatictooltips.enricher.stacksize.fluid=§8Množství: §7%s L
 chromatictooltips.enricher.stacksize.fluid.short=§8Množství: §7%s L = %s × %s L
 chromatictooltips.enricher.stacksize.fluid.full=§8Množství: §7%s L = %s × %s L + %s L
 
+chromatictooltips.enricher.stacksize.container=§8Množství v kontejneru: §7%s
+chromatictooltips.enricher.stacksize.container.short=§8Množství v kontejneru: §7%s = %s × %s
+chromatictooltips.enricher.stacksize.container.full=§8Množství v kontejneru: §7%s = %s × %s + %s
+
 chromatictooltips.enricher.modinfo.modname=§5%s
 chromatictooltips.enricher.modinfo.identifier=§5%s:§8%s
 
-chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 – §7%s
+chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 - §7%s
 chromatictooltips.enricher.hotkeys.keybind.keys=§8 / §6
 
 chromatictooltips.enricher.oreDictionary.title=§7Názvy v Ore Dictionary:
@@ -42,9 +46,45 @@ chromatictooltips.enricher.attributes.fuel.icon=%s
 chromatictooltips.enricher.attributes.armor.text=§9Ochrana: %s
 chromatictooltips.enricher.attributes.armor.icon=%s
 
+chromatictooltips.enricher.attributes.hunger.text=§2Jídlo: %s
+chromatictooltips.enricher.attributes.hunger.icon=%s
+
+chromatictooltips.enricher.attributes.saturation.text=§6Nasycení: %s
+chromatictooltips.enricher.attributes.saturation.icon=%s
+
+chromatictooltips.enricher.attributes.food.potion.text.plus=§b%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.plus.probability=§b%s (%s) [%s%%]
+
+chromatictooltips.enricher.attributes.food.potion.text.minus=§c%s (%s)
+chromatictooltips.enricher.attributes.food.potion.text.minus.probability=§c%s (%s) [%s%%]
+
 chromatictooltips.enricher.keyboard-modifier.shift.inactive=§8[shift]§r
 chromatictooltips.enricher.keyboard-modifier.shift.active=§6[shift]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.inactive=§8[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[alt]§r
+
+chromatictooltips.config.general.transformDisabled=Zakázat animace
+chromatictooltips.config.general.tooltipBlacklistLines=Blacklist (Regexp)
+chromatictooltips.config.general.scaleFactor=Měřítko tooltipu
+chromatictooltips.config.general.maxWidth=Max. šířka tooltipu
+chromatictooltips.config.general.tooltipShowUpDelay=Zpoždění zobrazení tooltipu
+
+chromatictooltips.config.enricher.hotkeysEnabled=Zobrazit zkratky
+chromatictooltips.config.enricher.attributeModifierIconsEnabled=Zobrazit ikony atributů
+chromatictooltips.config.enricher.burnTimeEnabled=Zobrazit dobu hoření
+chromatictooltips.config.enricher.foodStatsEnabled=Zobrazit statistiky jídla
+chromatictooltips.config.enricher.foodEffectsEnabled=Zobrazit efekty jídla
+chromatictooltips.config.enricher.durabilityEnabled=Zobrazit trvanlivost
+chromatictooltips.config.enricher.oreDictionaryEnabled=Zobrazit názvy v Ore Dictionary
+chromatictooltips.config.enricher.enchantmentIconsEnabled=Zobrazit ikony kouzel
+chromatictooltips.config.enricher.enchantmentHintEnabled=Zobrazit nápovědy kouzel
+chromatictooltips.config.enricher.keyboardModifiersEnabled=Zobrazit klávesové modifikátory
+chromatictooltips.config.enricher.modInfoEnabled=Zobrazit informace o modu
+chromatictooltips.config.enricher.stackAmountEnabled=Zobrazit počet v zásobníku
+
+chromatictooltips.config.stackamount.itemCompactThreshold=Práh kompaktního zobrazení (itemy)
+chromatictooltips.config.stackamount.fluidCompactThreshold=Práh kompaktního zobrazení (tekutiny)
+chromatictooltips.config.stackamount.includeContainerInventory=Zahrnout obsah kontejneru
+chromatictooltips.config.stackamount.hideWhenBelowMaxStackSize=Skrýt pod max. velikost zásobníku

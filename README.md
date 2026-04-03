@@ -1,6 +1,6 @@
 # Chromatic Tooltips
 
-🌐 **Languages:** [English](README.md) | [Русский](README.ru.md)
+🌐 **Languages:** [English](README.md) | [Русский](README.ru.md) | [Čeština](README.cz.md)
 
 **Chromatic Tooltips** is a client-side mod for Minecraft that transforms tooltips into a fully customizable UI system.
 All customization is done through resource packs using declarative JSON, without Java code and recompilation.
