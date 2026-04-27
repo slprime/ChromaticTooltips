@@ -287,6 +287,8 @@ public class TooltipRenderer implements ITooltipRenderer {
     }
 
     protected void drawContent(TooltipContext context, SectionComponent section, float scaleShift, int x, int y) {
+        final boolean lightingWasEnabled = GL11.glIsEnabled(GL11.GL_LIGHTING);
+
         GL11.glPushMatrix();
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -303,9 +305,14 @@ public class TooltipRenderer implements ITooltipRenderer {
         }
 
         TooltipUtils.incZLevel(-DEFAULT_Z_INDEX);
+        GL11.glColor4f(1f, 1f, 1f, 1f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        RenderHelper.enableStandardItemLighting();
+
+        if (lightingWasEnabled) {
+            RenderHelper.enableStandardItemLighting();
+        }
+
         GL11.glPopMatrix();
     }
 
