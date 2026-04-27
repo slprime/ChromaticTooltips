@@ -821,10 +821,7 @@ Triggers `StackSizeEnricherEvent` through which other mods can edit `stackSize` 
 **Place:** BODY
 **Mode:** DEFAULT (when there are hotkeys to display)
 
-Displays a hint that you need to press Alt to view hotkeys.
-
-**Settings:**
-- `hotkeysHelpTextEnabled` — allows disabling the hint
+Displays a hint that you need to press Alt/Shift/Ctrl.
 
 ### 8.4. hotkeys
 

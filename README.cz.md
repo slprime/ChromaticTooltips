@@ -823,10 +823,7 @@ Spouští `StackSizeEnricherEvent`, přes který mohou jiné mody upravit `stack
 **Umístění:** BODY
 **Režim:** DEFAULT (pokud existují zkratky k zobrazení)
 
-Zobrazuje nápovědu, že je třeba stisknout Alt pro zobrazení zkratek.
-
-**Nastavení:**
-- `hotkeysHelpTextEnabled` — umožňuje nápovědu vypnout
+Zobrazuje nápovědu, že je třeba stisknout Alt/Shift/Ctrl.
 
 ### 8.4. hotkeys
 
