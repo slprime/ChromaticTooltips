@@ -1,0 +1,43 @@
+{
+    "style": {
+        "margin": 2,
+        "padding": 4,
+
+        "offsetMain": 6,
+        "offsetCross": -18,
+
+        "decorators": [{
+            "type": "background",
+            "color": "0xF0100010",
+            "corner": false
+        },{
+            "type": "border",
+            "color": ["0x505000ff", "0x5028007F"],
+            "margin": 1
+        }],
+
+        "font": {
+            "paragraph": 6
+        },
+
+        "hr": {
+            "height": 0
+        },
+
+        "divider": {
+            "decorator": {
+                "type": "background",
+                "color": "0xFFFFFFFF",
+                "alignBlock": "center",
+                "height": 1
+            },
+            "height": 10
+        },
+
+        "sectionSpacing": 4,
+
+        "navigation": {
+            "marginTop": 4
+        }
+    }
+}

@@ -72,6 +72,7 @@ public class TooltipHandler {
     protected static final ComponentRegistry componentRegistry = new ComponentRegistry();
 
     protected static final String CONFIG_FILE = "tooltip.json";
+    protected static final String DEFAULT_CONFIG_FILE = "tooltip.default.json";
     protected static final String COMPONENT_PREFIX = "\u00A7z";
 
     protected static ITooltipRenderer defaultTooltipRenderer = null;
@@ -127,17 +128,35 @@ public class TooltipHandler {
 
             try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8))) {
-                ChromaticTooltips.LOG.info("Loading '{}' from resourcepack {}", CONFIG_FILE, location);
+                ChromaticTooltips.LOG.info("Loading '{}'", CONFIG_FILE);
                 parseStyle(
                     reader.lines()
                         .collect(Collectors.joining("\n")));
             }
 
+        } catch (java.io.FileNotFoundException e) {
+            loadDefaultStyle();
         } catch (Exception io) {
-            ChromaticTooltips.LOG.error("Failed to load '{}' resourcepack {}", CONFIG_FILE, location);
+            ChromaticTooltips.LOG.error("Failed to load '{}'", CONFIG_FILE);
             io.printStackTrace();
+            loadDefaultStyle();
         }
 
+    }
+
+    protected static void loadDefaultStyle() {
+        try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(
+                TooltipHandler.class.getResourceAsStream("/assets/chromatictooltips/" + DEFAULT_CONFIG_FILE),
+                StandardCharsets.UTF_8))) {
+            ChromaticTooltips.LOG.info("Loading '{}'", DEFAULT_CONFIG_FILE);
+            parseStyle(
+                reader.lines()
+                    .collect(Collectors.joining("\n")));
+        } catch (Exception e) {
+            ChromaticTooltips.LOG.error("Failed to load built-in default style '{}'", DEFAULT_CONFIG_FILE);
+            e.printStackTrace();
+        }
     }
 
     protected static ITooltipRenderer createRenderer(TooltipStyle style) {
