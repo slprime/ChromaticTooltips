@@ -407,7 +407,7 @@ Pokud není zadáno pole:
 
 vygeneruje se:
 ```
-[ transparent, 60% opacity, full opacity, 60% opacity, transparent] 
+[ transparent, 60% opacity, full opacity, 60% opacity, transparent]
 ```
 ([průhledná, 60% průhlednost, plná průhlednost, 60% průhlednost, průhledná ])
 
@@ -789,7 +789,7 @@ Režimy mohou být nakonfigurovány skrze konfigurační soubory pomocí klíče
 Sehnam základních sekcí:
 1. title
 1. stacksize
-1. hotkeys:help-text
+1. keyboard-modifier
 1. hotkeys
 1. oreDictionary
 1. itemInfo
@@ -818,7 +818,7 @@ Spouští `StackSizeEnricherEvent`, přes který mohou jiné mody upravit `stack
 - `stackSizeEnricherEnabled` — umožňuje tuto sekci vypnout
 - `playerInventoryStackSizeEnabled` — při najetí na item v inventáři hráče zobrazí nejen množství pod kurzorem, ale i celkové množství itemů tohoto typu v inventáři
 
-### 8.3. hotkeys:help-text
+### 8.3. keyboard-modifier
 
 **Umístění:** BODY
 **Režim:** DEFAULT (pokud existují zkratky k zobrazení)

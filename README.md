@@ -787,7 +787,7 @@ Modes can be configured through configuration files using the key `sections.<sec
 List of default sections:
 1. title
 1. stacksize
-1. hotkeys:help-text
+1. keyboard-modifier
 1. hotkeys
 1. oreDictionary
 1. itemInfo
@@ -816,7 +816,7 @@ Triggers `StackSizeEnricherEvent` through which other mods can edit `stackSize` 
 - `stackSizeEnricherEnabled` — allows disabling this section
 - `playerInventoryStackSizeEnabled` — when hovering over an item in the player's inventory, will show not only the quantity under the cursor, but also the total quantity of items of this type in the player's inventory
 
-### 8.3. hotkeys:help-text
+### 8.3. keyboard-modifier
 
 **Place:** BODY
 **Mode:** DEFAULT (when there are hotkeys to display)
