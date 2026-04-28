@@ -145,18 +145,31 @@ public class TooltipHandler {
     }
 
     protected static void loadDefaultStyle() {
-        try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(
-                TooltipHandler.class.getResourceAsStream("/assets/chromatictooltips/" + DEFAULT_CONFIG_FILE),
-                StandardCharsets.UTF_8))) {
-            ChromaticTooltips.LOG.info("Loading '{}'", DEFAULT_CONFIG_FILE);
-            parseStyle(
-                reader.lines()
-                    .collect(Collectors.joining("\n")));
+        final ResourceLocation location = new ResourceLocation(ChromaticTooltips.MODID, DEFAULT_CONFIG_FILE);
+
+        try {
+            final List<IResource> res = TooltipUtils.mc()
+                .getResourceManager()
+                .getAllResources(location);
+
+            for (IResource resource : res) {
+                try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+                    ChromaticTooltips.LOG.info("Loading '{}'", DEFAULT_CONFIG_FILE);
+                    parseStyle(
+                        reader.lines()
+                            .collect(Collectors.joining("\n")));
+                } catch (Exception e) {
+                    ChromaticTooltips.LOG.error("Failed to load '{}'", DEFAULT_CONFIG_FILE);
+                    e.printStackTrace();
+                }
+            }
+
         } catch (Exception e) {
-            ChromaticTooltips.LOG.error("Failed to load built-in default style '{}'", DEFAULT_CONFIG_FILE);
+            ChromaticTooltips.LOG.error("Failed to load '{}'", CONFIG_FILE);
             e.printStackTrace();
         }
+
     }
 
     protected static ITooltipRenderer createRenderer(TooltipStyle style) {
