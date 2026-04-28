@@ -4,7 +4,14 @@ import com.gtnewhorizon.gtnhlib.config.Config;
 import com.slprime.chromatictooltips.ChromaticTooltips;
 
 @Config(modid = ChromaticTooltips.MODID, category = "general")
+@Config.Order(0)
 public class GeneralConfig {
+
+    @Config.Comment("Enable resource pack themes. This allows resource packs to define custom tooltip themes. Disabling this will prevent the game from loading any tooltip themes defined in resource packs.")
+    @Config.LangKey("chromatictooltips.config.general.enabledResourcePackThemes")
+    @Config.DefaultBoolean(true)
+    @Config.Order(0)
+    public static boolean enabledResourcePackThemes;
 
     @Config.Comment("Disabled tooltip animations.")
     @Config.LangKey("chromatictooltips.config.general.transformDisabled")

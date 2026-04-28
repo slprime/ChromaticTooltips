@@ -42,8 +42,7 @@ public class TooltipUtils {
 
     }
 
-    protected static String[] tooltipBlacklistLines;
-    protected static Predicate<String> tooltipBlacklistLinesPattern;
+    protected static Predicate<String> tooltipBlacklistLinesPattern = ln -> false;
     protected static final Pattern COLOR_CODES_PATTERN = Pattern
         .compile("^\\s*§([0-9A-F]).*", Pattern.CASE_INSENSITIVE);
     private static final int ALT_HASH = 1 << 27;
@@ -143,28 +142,22 @@ public class TooltipUtils {
         return 15;
     }
 
+    public static void reloadBlacklistPatterns() {
+        TooltipUtils.tooltipBlacklistLinesPattern = ln -> false;
+
+        for (String rule : GeneralConfig.tooltipBlacklistLines) {
+            try {
+                final Pattern pattern = Pattern.compile(rule, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+                TooltipUtils.tooltipBlacklistLinesPattern = TooltipUtils.tooltipBlacklistLinesPattern.or(
+                    ln -> pattern.matcher(ln)
+                        .find());
+            } catch (Exception ignored) {}
+        }
+
+    }
+
     public static boolean isBlacklistedLine(String line) {
-
-        if (GeneralConfig.tooltipBlacklistLines.length == 0) {
-            return false;
-        }
-
-        if (tooltipBlacklistLines != GeneralConfig.tooltipBlacklistLines) {
-            tooltipBlacklistLines = GeneralConfig.tooltipBlacklistLines;
-            tooltipBlacklistLinesPattern = ln -> false;
-
-            for (int i = 0; i < tooltipBlacklistLines.length; i++) {
-                final String rule = tooltipBlacklistLines[i];
-                try {
-                    final Pattern pattern = Pattern.compile(rule, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-                    tooltipBlacklistLinesPattern = tooltipBlacklistLinesPattern.or(
-                        ln -> pattern.matcher(ln)
-                            .find());
-                } catch (Exception ignored) {}
-            }
-        }
-
-        return tooltipBlacklistLinesPattern.test(EnumChatFormatting.getTextWithoutFormattingCodes(line));
+        return TooltipUtils.tooltipBlacklistLinesPattern.test(EnumChatFormatting.getTextWithoutFormattingCodes(line));
     }
 
     public static boolean isAltKeyDown() {

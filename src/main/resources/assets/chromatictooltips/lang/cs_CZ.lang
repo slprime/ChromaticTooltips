@@ -65,7 +65,7 @@ chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[alt]§r
 
-chromatictooltips.config.general.transformDisabled=Zakázat animace
+chromatictooltips.config.general.transformDisabled=Zakázat transformaci
 chromatictooltips.config.general.tooltipBlacklistLines=Blacklist (Regexp)
 chromatictooltips.config.general.scaleFactor=Měřítko tooltipu
 chromatictooltips.config.general.maxWidth=Max. šířka tooltipu

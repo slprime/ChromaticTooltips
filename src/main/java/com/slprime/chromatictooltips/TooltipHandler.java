@@ -1,21 +1,12 @@
 package com.slprime.chromatictooltips;
 
 import java.awt.Point;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import net.minecraft.client.resources.IResource;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 
 import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
@@ -33,7 +24,7 @@ import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.config.GeneralConfig;
 import com.slprime.chromatictooltips.event.TooltipEnricherEvent;
 import com.slprime.chromatictooltips.util.ComponentRegistry;
-import com.slprime.chromatictooltips.util.Parser;
+import com.slprime.chromatictooltips.util.ThemeManager;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class TooltipHandler {
@@ -68,18 +59,10 @@ public class TooltipHandler {
 
     protected static final int MIN_FPS = 8;
     protected static final int MAX_FPS = 60;
-
-    protected static final ComponentRegistry componentRegistry = new ComponentRegistry();
-
-    protected static final String CONFIG_FILE = "tooltip.json";
-    protected static final String DEFAULT_CONFIG_FILE = "tooltip.default.json";
     protected static final String COMPONENT_PREFIX = "\u00A7z";
 
-    protected static ITooltipRenderer defaultTooltipRenderer = null;
-    protected static Map<String, List<ITooltipRenderer>> otherTooltipRenderers = new HashMap<>();
-
-    protected static final Parser parser = new Parser();
-    protected static Class<? extends ITooltipRenderer> rendererClass = null;
+    protected static final ComponentRegistry componentRegistry = new ComponentRegistry();
+    protected static final ThemeManager themeManager = new ThemeManager();
 
     protected static final TooltipCache tooltipCache = new TooltipCache();
     protected static final ShowDelayTracker showDelayTracker = new ShowDelayTracker();
@@ -87,98 +70,7 @@ public class TooltipHandler {
     protected static boolean renderLastTooltip = false;
 
     public static void reload() {
-        TooltipHandler.otherTooltipRenderers.clear();
-        TooltipHandler.defaultTooltipRenderer = null;
-
-        loadTooltipResource();
-
-        if (TooltipHandler.defaultTooltipRenderer == null) {
-            TooltipHandler.defaultTooltipRenderer = createRenderer(new TooltipStyle());
-        }
-    }
-
-    protected static void parseStyle(String json) {
-        final List<TooltipStyle> scopes = TooltipHandler.parser.parse(json);
-
-        for (TooltipStyle style : scopes) {
-            String context = style.getAsString("context", null);
-
-            if (context == null && style.containsKey("filter")) {
-                context = "item";
-            }
-
-            if (context == null || "default".equals(context)) {
-                TooltipHandler.defaultTooltipRenderer = createRenderer(style);
-            } else {
-                TooltipHandler.otherTooltipRenderers.computeIfAbsent(context, k -> new ArrayList<>())
-                    .add(createRenderer(style));
-            }
-
-        }
-
-    }
-
-    protected static void loadTooltipResource() {
-        final ResourceLocation location = new ResourceLocation(ChromaticTooltips.MODID, CONFIG_FILE);
-
-        try {
-            final IResource res = TooltipUtils.mc()
-                .getResourceManager()
-                .getResource(location);
-
-            try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(res.getInputStream(), StandardCharsets.UTF_8))) {
-                ChromaticTooltips.LOG.info("Loading '{}'", CONFIG_FILE);
-                parseStyle(
-                    reader.lines()
-                        .collect(Collectors.joining("\n")));
-            }
-
-        } catch (java.io.FileNotFoundException e) {
-            loadDefaultStyle();
-        } catch (Exception io) {
-            ChromaticTooltips.LOG.error("Failed to load '{}'", CONFIG_FILE);
-            io.printStackTrace();
-            loadDefaultStyle();
-        }
-
-    }
-
-    protected static void loadDefaultStyle() {
-        final ResourceLocation location = new ResourceLocation(ChromaticTooltips.MODID, DEFAULT_CONFIG_FILE);
-
-        try {
-            final List<IResource> res = TooltipUtils.mc()
-                .getResourceManager()
-                .getAllResources(location);
-
-            for (IResource resource : res) {
-                try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
-                    ChromaticTooltips.LOG.info("Loading '{}'", DEFAULT_CONFIG_FILE);
-                    parseStyle(
-                        reader.lines()
-                            .collect(Collectors.joining("\n")));
-                } catch (Exception e) {
-                    ChromaticTooltips.LOG.error("Failed to load '{}'", DEFAULT_CONFIG_FILE);
-                    e.printStackTrace();
-                }
-            }
-
-        } catch (Exception e) {
-            ChromaticTooltips.LOG.error("Failed to load '{}'", CONFIG_FILE);
-            e.printStackTrace();
-        }
-
-    }
-
-    protected static ITooltipRenderer createRenderer(TooltipStyle style) {
-        try {
-            return TooltipHandler.rendererClass.getConstructor(TooltipStyle.class)
-                .newInstance(style);
-        } catch (Exception e1) {
-            return new TooltipRenderer(style);
-        }
+        TooltipHandler.themeManager.reloadThemes();
     }
 
     public static String getComponentId(ITooltipComponent component) {
@@ -196,8 +88,7 @@ public class TooltipHandler {
     }
 
     public static void setRendererClass(Class<? extends ITooltipRenderer> rendererClass) {
-        TooltipHandler.rendererClass = rendererClass;
-        reload();
+        TooltipHandler.themeManager.setRendererClass(rendererClass);
     }
 
     public static TooltipBuilder builder() {
@@ -410,40 +301,11 @@ public class TooltipHandler {
     }
 
     public static boolean hasTooltipRendererFor(TooltipRequest request) {
-        return getRendererFor(request) != TooltipHandler.defaultTooltipRenderer;
+        return TooltipHandler.themeManager.hasTooltipRendererFor(request);
     }
 
     public static ITooltipRenderer getRendererFor(TooltipRequest request) {
-        final String fallbackContext = request.target.isItem() ? "item"
-            : (request.target.isFluid() ? "fluid" : "default");
-        final String context = request.context != null ? request.context : fallbackContext;
-
-        if ("default".equals(context)) {
-            return TooltipHandler.defaultTooltipRenderer;
-        }
-
-        ITooltipRenderer renderer = findRenderer(context, request.target);
-
-        if (renderer == null && (request.target.isItem() || request.target.isFluid())
-            && !fallbackContext.equals(context)) {
-            renderer = findRenderer(fallbackContext, request.target);
-        }
-
-        if (renderer == null && request.target.isFluid()) {
-            renderer = findRenderer("item", null);
-        }
-
-        return renderer != null ? renderer : TooltipHandler.defaultTooltipRenderer;
-    }
-
-    private static ITooltipRenderer findRenderer(String context, TooltipTarget target) {
-        for (ITooltipRenderer renderer : TooltipHandler.otherTooltipRenderers
-            .getOrDefault(context, Collections.emptyList())) {
-            if (renderer.matches(target)) {
-                return renderer;
-            }
-        }
-        return null;
+        return TooltipHandler.themeManager.getRendererFor(request);
     }
 
     public static TooltipContext getLastTooltipContext() {

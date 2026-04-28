@@ -25,6 +25,7 @@ import com.slprime.chromatictooltips.handlers.FoodEffectsHandler;
 import com.slprime.chromatictooltips.handlers.FoodStatsHandler;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
+import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -111,7 +112,16 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager) {
+        TooltipUtils.reloadBlacklistPatterns();
         TooltipHandler.reload();
+    }
+
+    @SubscribeEvent
+    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (ChromaticTooltips.MODID.equals(event.modID)) {
+            TooltipUtils.reloadBlacklistPatterns();
+            TooltipHandler.reload();
+        }
     }
 
 }
