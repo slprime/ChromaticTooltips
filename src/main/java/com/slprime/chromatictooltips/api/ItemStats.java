@@ -10,9 +10,9 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.StatCollector;
 
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import com.slprime.chromatictooltips.component.ItemAttributeComponent;
 import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.util.NumberFormatUtil;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class ItemStats {

@@ -8,8 +8,6 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
-import com.gtnewhorizon.gtnhlib.util.numberformatting.options.CompactOptions;
 import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
 import com.slprime.chromatictooltips.api.TooltipContext;
@@ -19,7 +17,9 @@ import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.config.StackAmountConfig;
 import com.slprime.chromatictooltips.event.StackSizeEnricherEvent;
+import com.slprime.chromatictooltips.util.NumberFormatUtil;
 import com.slprime.chromatictooltips.util.TooltipUtils;
+import com.slprime.chromatictooltips.util.options.CompactOptions;
 
 public class StackSizeEnricher implements ITooltipEnricher {
 
@@ -159,6 +159,8 @@ public class StackSizeEnricher implements ITooltipEnricher {
     }
 
     public String formatNumber(long stackAmount) {
+
+        System.out.println("Formatting stack amount: " + stackAmount);
 
         if (StackAmountConfig.itemCompactThreshold != StackSizeEnricher.itemCompactThreshold) {
             StackSizeEnricher.itemCompactThreshold = StackAmountConfig.itemCompactThreshold;

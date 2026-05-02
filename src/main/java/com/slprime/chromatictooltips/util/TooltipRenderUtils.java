@@ -15,7 +15,6 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import com.gtnewhorizon.gtnhlib.util.numberformatting.NumberFormatUtil;
 import com.slprime.chromatictooltips.ChromaticTooltips;
 
 public class TooltipRenderUtils {
