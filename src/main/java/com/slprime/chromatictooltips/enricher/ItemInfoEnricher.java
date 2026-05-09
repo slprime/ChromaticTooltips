@@ -54,8 +54,7 @@ public class ItemInfoEnricher implements ITooltipEnricher {
         final List<String> tooltip = new ArrayList<>();
         final ItemStack stack = target.getItem()
             .copy();
-        final String displayName = stack.getDisplayName();
-        tooltip.add(displayName); // temporary name added for information gathering
+        tooltip.add("Unnamed"); // temporary name added for information gathering
 
         try {
             stack.getItem()

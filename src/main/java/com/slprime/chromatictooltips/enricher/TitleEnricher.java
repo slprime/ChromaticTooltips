@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.slprime.chromatictooltips.ChromaticTooltips;
 import com.slprime.chromatictooltips.api.EnricherPlace;
 import com.slprime.chromatictooltips.api.ITooltipComponent;
 import com.slprime.chromatictooltips.api.ITooltipEnricher;
@@ -109,11 +110,9 @@ public class TitleEnricher implements ITooltipEnricher {
 
     protected TooltipLines fluidTitle(TooltipTarget target) {
         final FluidStack fluid = target.getFluid();
-        final String displayName = fluid.getFluid()
-            .getLocalizedName(fluid);
         final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(fluid));
-        final TitleEnricherEvent event = new TitleEnricherEvent(target, displayName);
+        final TitleEnricherEvent event = new TitleEnricherEvent(target, getDisplayName(target));
         TooltipUtils.postEvent(event);
 
         return new TooltipLines(
@@ -124,11 +123,31 @@ public class TitleEnricher implements ITooltipEnricher {
         final ItemStack stack = target.getItem();
         final ITooltipComponent identifierComponent = new TextComponent(
             EnumChatFormatting.DARK_GRAY + getAdvancedInfo(stack));
-        final TitleEnricherEvent event = new TitleEnricherEvent(target, stack.getDisplayName());
+        final TitleEnricherEvent event = new TitleEnricherEvent(target, getDisplayName(target));
         TooltipUtils.postEvent(event);
 
         return new TooltipLines(
             new StackTitleTooltipComponent(prepareItemDisplayName(stack, event.displayName), identifierComponent));
+    }
+
+    private String getDisplayName(TooltipTarget target) {
+
+        try {
+
+            if (target.getItem() != null) {
+                return target.getItem()
+                    .getDisplayName();
+            } else if (target.getFluid() != null) {
+                final FluidStack fluid = target.getFluid();
+                return fluid.getFluid()
+                    .getLocalizedName(fluid);
+            }
+
+        } catch (Exception e) {
+            ChromaticTooltips.LOG.error("Failed to get item display name for tooltip title enricher", e);
+        }
+
+        return EnumChatFormatting.RED + "Unnamed";
     }
 
     private String prepareItemDisplayName(ItemStack stack, String displayName) {
