@@ -202,7 +202,7 @@ public class TooltipHandler {
 
             if (modes.contains(TooltipModifier.NONE) && (place == EnricherPlace.HEADER || place == EnricherPlace.FOOTER)
                 || modes.contains(activeModifier)) {
-                final TooltipLines result = enricher.build(context);
+                final TooltipLines result = buildTooltipEnricher(enricher, context);
 
                 if (result != null && !result.isEmpty()) {
                     final String sectionId = enricher.sectionId();
@@ -253,7 +253,7 @@ public class TooltipHandler {
 
             if (modes.contains(TooltipModifier.NONE)) {
                 context.setActiveModifier(TooltipModifier.NONE);
-                noneComponents = enricher.build(context);
+                noneComponents = buildTooltipEnricher(enricher, context);
             }
 
             for (TooltipModifier modifier : modes) {
@@ -264,7 +264,7 @@ public class TooltipHandler {
                 }
 
                 context.setActiveModifier(modifier);
-                final TooltipLines result = enricher.build(context);
+                final TooltipLines result = buildTooltipEnricher(enricher, context);
 
                 if (result != null && !result.isEmpty() && (noneComponents == null || !result.equals(noneComponents))) {
                     context.supportModifiers(modifier);
@@ -284,7 +284,7 @@ public class TooltipHandler {
             final EnricherPlace place = renderer.getEnricherPlace(enricher.sectionId(), enricher.place());
 
             if (place == EnricherPlace.BODY && modes.contains(TooltipModifier.NONE)) {
-                final TooltipLines result = enricher.build(context);
+                final TooltipLines result = buildTooltipEnricher(enricher, context);
 
                 if (result != null && !result.isEmpty()) {
                     final String sectionId = enricher.sectionId();
@@ -298,6 +298,18 @@ public class TooltipHandler {
         }
 
         return bodySections;
+    }
+
+    protected static TooltipLines buildTooltipEnricher(ITooltipEnricher enricher, TooltipContext context) {
+        try {
+            return enricher.build(context);
+        } catch (Exception e) {
+            // Log the error and continue
+            ChromaticTooltips.LOG
+                .error("Error building tooltip enricher '" + enricher.sectionId() + "': " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static boolean hasTooltipRendererFor(TooltipRequest request) {
