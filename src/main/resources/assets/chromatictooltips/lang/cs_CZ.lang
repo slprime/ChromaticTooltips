@@ -7,16 +7,16 @@ chromatictooltips.navigation.page.next_only=§8Strana: %s / %s [Stiskni %s pro d
 chromatictooltips.navigation.page.previous_only=§8Strana: %s / %s [Stiskni %s pro předchozí]
 
 chromatictooltips.enricher.stacksize.item=§8Počet: §7%s
-chromatictooltips.enricher.stacksize.item.short=§8Počet: §7%s = %s × %s
-chromatictooltips.enricher.stacksize.item.full=§8Počet: §7%s = %s × %s + %s
+chromatictooltips.enricher.stacksize.item.short=§8Počet: §7%s = %s * %s
+chromatictooltips.enricher.stacksize.item.full=§8Počet: §7%s = %s * %s + %s
 
-chromatictooltips.enricher.stacksize.fluid=§8Množství: §7%s L
-chromatictooltips.enricher.stacksize.fluid.short=§8Množství: §7%s L = %s × %s L
-chromatictooltips.enricher.stacksize.fluid.full=§8Množství: §7%s L = %s × %s L + %s L
+chromatictooltips.enricher.stacksize.fluid=§8Množství: §7%s
+chromatictooltips.enricher.stacksize.fluid.short=§8Množství: §7%s = %s * %s
+chromatictooltips.enricher.stacksize.fluid.full=§8Množství: §7%s = %s * %s + %s
 
 chromatictooltips.enricher.stacksize.container=§8Množství v kontejneru: §7%s
-chromatictooltips.enricher.stacksize.container.short=§8Množství v kontejneru: §7%s = %s × %s
-chromatictooltips.enricher.stacksize.container.full=§8Množství v kontejneru: §7%s = %s × %s + %s
+chromatictooltips.enricher.stacksize.container.short=§8Množství v kontejneru: §7%s = %s * %s
+chromatictooltips.enricher.stacksize.container.full=§8Množství v kontejneru: §7%s = %s * %s + %s
 
 chromatictooltips.enricher.modinfo.modname=§9§o%s
 chromatictooltips.enricher.modinfo.identifier=§9§o%s:§8%s
@@ -43,7 +43,7 @@ chromatictooltips.enricher.attributes.durability.icon=%s§7 / %s
 chromatictooltips.enricher.attributes.fuel.text=§3Doba hoření: %s
 chromatictooltips.enricher.attributes.fuel.icon=%s
 
-chromatictooltips.enricher.attributes.armor.text=§3Ochrana: %s
+chromatictooltips.enricher.attributes.armor.text=§3+%s Ochrana
 chromatictooltips.enricher.attributes.armor.icon=%s
 
 chromatictooltips.enricher.attributes.hunger.text=§2Jídlo: %s
@@ -65,11 +65,12 @@ chromatictooltips.enricher.keyboard-modifier.ctrl.active=§6[ctrl]§r
 chromatictooltips.enricher.keyboard-modifier.alt.inactive=§8[alt]§r
 chromatictooltips.enricher.keyboard-modifier.alt.active=§6[alt]§r
 
+chromatictooltips.config.general.enabledResourcePackThemes=Motivy balíčků zdrojů
 chromatictooltips.config.general.transformDisabled=Zakázat transformaci
 chromatictooltips.config.general.tooltipBlacklistLines=Blacklist (Regexp)
-chromatictooltips.config.general.scaleFactor=Měřítko tooltipu
-chromatictooltips.config.general.maxWidth=Max. šířka tooltipu
-chromatictooltips.config.general.tooltipShowUpDelay=Zpoždění zobrazení tooltipu
+chromatictooltips.config.general.scaleFactor=Měřítko tipů (tooltipů)
+chromatictooltips.config.general.maxWidth=Max. šířka tipů (tooltipů)
+chromatictooltips.config.general.tooltipShowUpDelay=Zpoždění zobrazení tipů (tooltipů)
 
 chromatictooltips.config.enricher.hotkeysEnabled=Zobrazit zkratky
 chromatictooltips.config.enricher.attributeModifierIconsEnabled=Zobrazit ikony atributů
@@ -82,7 +83,7 @@ chromatictooltips.config.enricher.enchantmentIconsEnabled=Zobrazit ikony kouzel
 chromatictooltips.config.enricher.enchantmentHintEnabled=Zobrazit nápovědy kouzel
 chromatictooltips.config.enricher.keyboardModifiersEnabled=Zobrazit klávesové modifikátory
 chromatictooltips.config.enricher.modInfoEnabled=Zobrazit informace o modu
-chromatictooltips.config.enricher.stackAmountEnabled=Zobrazit počet v zásobníku
+chromatictooltips.config.enricher.stackAmountEnabled=Zobrazit počet v hromadě (stacku)
 
 chromatictooltips.config.stackamount.itemCompactThreshold=Práh kompaktního zobrazení (itemy)
 chromatictooltips.config.stackamount.fluidCompactThreshold=Práh kompaktního zobrazení (tekutiny)
