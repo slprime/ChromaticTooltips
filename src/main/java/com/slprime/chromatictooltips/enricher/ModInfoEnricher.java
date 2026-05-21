@@ -71,9 +71,15 @@ public class ModInfoEnricher implements ITooltipEnricher {
             identifier.name);
         TooltipUtils.postEvent(event);
 
-        if (TooltipUtils.isCtrlKeyDown() && TooltipUtils.mc().gameSettings.advancedItemTooltips) {
-            components.line(TooltipUtils.translate("enricher.modinfo.identifier", event.modId, event.itemId));
-        } else {
+        boolean showModName = true;
+        if (TooltipUtils.mc().gameSettings.advancedItemTooltips
+            && (!EnricherConfig.stringIDNeedsHotkey || TooltipUtils.isCtrlKeyDown())) {
+            showModName = !EnricherConfig.stringIDOverridesModName;
+            final String key = EnricherConfig.colorStringID ? "enricher.modinfo.identifier"
+                : "enricher.modinfo.identifier.colorless";
+            components.line(TooltipUtils.translate(key, event.modId, event.itemId));
+        }
+        if (showModName) {
             components.line(TooltipUtils.translate("enricher.modinfo.modname", event.modName));
         }
 
