@@ -5,8 +5,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
@@ -29,6 +31,8 @@ import com.slprime.chromatictooltips.event.FoodStatsEvent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
 
 public class ItemStatsEnricher implements ITooltipEnricher {
+
+    private static final Map<Class<?>, Boolean> durabilityDisplayCache = new ConcurrentHashMap<>();
 
     protected static final int PADDING = 4;
     protected static final String SECTION_ID = "stats";
@@ -156,7 +160,9 @@ public class ItemStatsEnricher implements ITooltipEnricher {
     }
 
     private static void addDurabilityAttribute(ItemStack stack, List<ItemStats> stats) {
-        if (stack.isItemStackDamageable() && !stack.getHasSubtypes() && !stack.isStackable()) {
+        if (stack.isItemStackDamageable() && !stack.getHasSubtypes()
+            && !stack.isStackable()
+            && hasVanillaDurabilityDisplay(stack.getItem())) {
             final int maxDurability = stack.getMaxDamage();
             final int durability = maxDurability - stack.getItemDamage();
             stats.add(new ItemStats.DurabilityStats(durability, maxDurability));
@@ -193,6 +199,19 @@ public class ItemStatsEnricher implements ITooltipEnricher {
             }
         }
 
+    }
+
+    private static boolean hasVanillaDurabilityDisplay(Item item) {
+        return durabilityDisplayCache.computeIfAbsent(item.getClass(), cls -> {
+            final int maxDamage = item.getMaxDamage();
+            if (maxDamage <= 0) return false;
+            final int testDamage = Math.max(1, maxDamage / 2);
+            final ItemStack testStack = new ItemStack(item);
+            testStack.setItemDamage(testDamage);
+            final double expected = (double) testDamage / maxDamage;
+            final double actual = item.getDurabilityForDisplay(testStack);
+            return Math.abs(actual - expected) < 0.01;
+        });
     }
 
 }
