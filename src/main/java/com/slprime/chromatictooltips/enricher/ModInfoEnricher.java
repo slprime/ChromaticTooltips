@@ -45,7 +45,6 @@ public class ModInfoEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        final TooltipLines components = new TooltipLines();
         final TooltipTarget target = context.getTarget();
         UniqueIdentifier identifier = UNKNOWN_IDENTIFIER;
 
@@ -67,17 +66,21 @@ public class ModInfoEnricher implements ITooltipEnricher {
             identifier.name);
         TooltipUtils.postEvent(event);
 
+        final TooltipLines components = new TooltipLines();
+        boolean added = false;
         // always add the item string id when adv tooltips is enabled
         if (TooltipUtils.mc().gameSettings.advancedItemTooltips) {
             components.line(TooltipUtils.translate("enricher.modinfo.identifier", event.modId, event.itemId));
+            added = true;
         }
 
         // only add mod name if the enricher is enabled.
         if (EnricherConfig.modInfoEnabled) {
             components.line(TooltipUtils.translate("enricher.modinfo.modname", event.modName));
+            added = false;
         }
 
-        return components;
+        return added ? components : null;
     }
 
     protected static UniqueIdentifier getIdentifier(ItemStack stack) {
