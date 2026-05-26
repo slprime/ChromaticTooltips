@@ -19,8 +19,7 @@ chromatictooltips.enricher.stacksize.container.short=§8Container Amount: §7%s 
 chromatictooltips.enricher.stacksize.container.full=§8Container Amount: §7%s = %s * %s + %s
 
 chromatictooltips.enricher.modinfo.modname=§9§o%s
-chromatictooltips.enricher.modinfo.identifier=§9§o%s:§8%s
-chromatictooltips.enricher.modinfo.identifier.colorless=§8%s:%s
+chromatictooltips.enricher.modinfo.identifier=§8%s:%s
 
 chromatictooltips.enricher.hotkeys.keybind.entry=§6%s§7 - §7%s
 chromatictooltips.enricher.hotkeys.keybind.keys=§8 / §6
@@ -84,9 +83,6 @@ chromatictooltips.config.enricher.enchantmentIconsEnabled=Show Enchantment Icons
 chromatictooltips.config.enricher.enchantmentHintEnabled=Show Enchantment Hints
 chromatictooltips.config.enricher.keyboardModifiersEnabled=Show Keyboard Modifiers
 chromatictooltips.config.enricher.modInfoEnabled=Show Mod Information
-chromatictooltips.config.enricher.stringIDNeedsHotkey=String ID requires hotkey
-chromatictooltips.config.enricher.stringIDOverridesModName=String ID overrides mod name
-chromatictooltips.config.enricher.colorStringID=Show Colored String ID
 chromatictooltips.config.enricher.stackAmountEnabled=Show Stack Amount
 
 chromatictooltips.config.stackamount.itemCompactThreshold=Item Compact Threshold

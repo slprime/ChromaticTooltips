@@ -66,19 +66,4 @@ public class EnricherConfig {
     @Config.DefaultBoolean(true)
     public static boolean modInfoEnabled;
 
-    @Config.Comment("Item String Id requires hotkeys to be shown even when adv. tooltips are enabled.")
-    @Config.LangKey("chromatictooltips.config.enricher.stringIDNeedsHotkey")
-    @Config.DefaultBoolean(false)
-    public static boolean stringIDNeedsHotkey;
-
-    @Config.Comment("Item String ID overrides mod name instead of being placed on a separate line (like vanilla).")
-    @Config.LangKey("chromatictooltips.config.enricher.stringIDOverridesModName")
-    @Config.DefaultBoolean(true)
-    public static boolean stringIDOverridesModName;
-
-    @Config.Comment("Color the mod part of the item string ids.")
-    @Config.LangKey("chromatictooltips.config.enricher.colorStringID")
-    @Config.DefaultBoolean(true)
-    public static boolean colorStringID;
-
 }
