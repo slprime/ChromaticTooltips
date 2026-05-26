@@ -45,11 +45,6 @@ public class ModInfoEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!EnricherConfig.modInfoEnabled) {
-            return null;
-        }
-
-        final TooltipLines components = new TooltipLines();
         final TooltipTarget target = context.getTarget();
         UniqueIdentifier identifier = UNKNOWN_IDENTIFIER;
 
@@ -71,13 +66,18 @@ public class ModInfoEnricher implements ITooltipEnricher {
             identifier.name);
         TooltipUtils.postEvent(event);
 
-        if (TooltipUtils.isCtrlKeyDown() && TooltipUtils.mc().gameSettings.advancedItemTooltips) {
+        final TooltipLines components = new TooltipLines();
+        // always add the item string id when adv tooltips is enabled
+        if (TooltipUtils.mc().gameSettings.advancedItemTooltips) {
             components.line(TooltipUtils.translate("enricher.modinfo.identifier", event.modId, event.itemId));
-        } else {
+        }
+
+        // only add mod name if the enricher is enabled.
+        if (EnricherConfig.modInfoEnabled) {
             components.line(TooltipUtils.translate("enricher.modinfo.modname", event.modName));
         }
 
-        return components;
+        return components.isEmpty() ? null : components;
     }
 
     protected static UniqueIdentifier getIdentifier(ItemStack stack) {
