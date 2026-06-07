@@ -57,7 +57,7 @@ public class TooltipHandler {
         }
     }
 
-    protected static final int MIN_FPS = 8;
+    protected static final int MIN_FPS = 30;
     protected static final int MAX_FPS = 60;
     protected static final String COMPONENT_PREFIX = "\u00A7z";
 
