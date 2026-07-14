@@ -17,8 +17,8 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import com.slprime.chromatictooltips.api.TooltipTarget;
 
-import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
 import cpw.mods.fml.common.registry.GameData;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
  * @formatter:off
@@ -246,7 +246,6 @@ public class ItemStackFilterParser {
     }
 
     protected static Predicate<TooltipTarget> getStringIdentifierFilter(String rule) {
-        final FMLControlledNamespacedRegistry<Item> iItemRegistry = GameData.getItemRegistry();
         final Predicate<String> matcher = getMatcher(rule);
 
         if (matcher == null) {
@@ -257,7 +256,7 @@ public class ItemStackFilterParser {
             String name = null;
 
             if (target.isItem()) {
-                name = iItemRegistry.getNameForObject(target.getItem());
+                name = getItemRegistryName(target.getItem().getItem());
             } else if (target.isFluid()) {
                 name = FluidRegistry.getDefaultFluidName(target.getFluid().getFluid());
             } else {
@@ -266,5 +265,15 @@ public class ItemStackFilterParser {
 
             return name != null && !name.isEmpty() && matcher.test(name);
         };
+    }
+
+    protected static String getItemRegistryName(Item item) {
+        final GameRegistry.UniqueIdentifier identifier = GameRegistry.findUniqueIdentifierFor(item);
+
+        if (identifier != null) {
+            return identifier.toString();
+        }
+
+        return GameData.getItemRegistry().getNameForObject(item);
     }
 }
