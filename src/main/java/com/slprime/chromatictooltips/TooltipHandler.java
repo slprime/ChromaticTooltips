@@ -59,7 +59,6 @@ public class TooltipHandler {
 
     protected static final int MIN_FPS = 30;
     protected static final int MAX_FPS = 60;
-    protected static final String COMPONENT_PREFIX = "\u00A7z";
 
     protected static final ComponentRegistry componentRegistry = new ComponentRegistry();
     protected static final ThemeManager themeManager = new ThemeManager();
@@ -73,18 +72,20 @@ public class TooltipHandler {
         TooltipHandler.themeManager.reloadThemes();
     }
 
+    public static ComponentRegistry getComponentRegistry() {
+        return TooltipHandler.componentRegistry;
+    }
+
     public static String getComponentId(ITooltipComponent component) {
-        return TooltipHandler.COMPONENT_PREFIX + TooltipHandler.componentRegistry.add(component);
+        return TooltipHandler.componentRegistry.addTemporary(component);
+    }
+
+    public static String getPermanentId(ITooltipComponent component) {
+        return TooltipHandler.componentRegistry.addPermanent(component);
     }
 
     public static ITooltipComponent getTooltipComponent(String line) {
-        if (!line.startsWith(TooltipHandler.COMPONENT_PREFIX)) return null;
-        try {
-            final int token = Integer.parseInt(line.substring(TooltipHandler.COMPONENT_PREFIX.length()));
-            return TooltipHandler.componentRegistry.get(token);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return TooltipHandler.componentRegistry.get(line);
     }
 
     public static void setRendererClass(Class<? extends ITooltipRenderer> rendererClass) {
