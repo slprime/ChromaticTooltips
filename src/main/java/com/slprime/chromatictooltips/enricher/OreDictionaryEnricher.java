@@ -44,7 +44,7 @@ public class OreDictionaryEnricher implements ITooltipEnricher {
     public TooltipLines build(TooltipContext context) {
         final ItemStack stack = context.getItem();
 
-        if (stack == null || !EnricherConfig.oreDictionaryEnabled) {
+        if (stack == null || !EnricherConfig.oreDictionary.isEnabled()) {
             return null;
         }
 

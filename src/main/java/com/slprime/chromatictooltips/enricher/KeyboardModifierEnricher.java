@@ -30,7 +30,7 @@ public class KeyboardModifierEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!EnricherConfig.keyboardModifiersEnabled) {
+        if (!EnricherConfig.keyboardModifiers.isEnabled()) {
             return null;
         }
 

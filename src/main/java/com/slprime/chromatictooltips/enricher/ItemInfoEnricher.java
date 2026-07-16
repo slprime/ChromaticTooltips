@@ -51,6 +51,7 @@ public class ItemInfoEnricher implements ITooltipEnricher {
 
     public static List<Object> getItemInformation(TooltipTarget target) {
         final Minecraft mc = TooltipUtils.mc();
+        final boolean advancedItemTooltips = mc.gameSettings.advancedItemTooltips;
         final List<String> tooltip = new ArrayList<>();
         final ItemStack stack = target.getItem()
             .copy();
@@ -58,14 +59,14 @@ public class ItemInfoEnricher implements ITooltipEnricher {
 
         try {
             stack.getItem()
-                .addInformation(stack, mc.thePlayer, tooltip, mc.gameSettings.advancedItemTooltips);
+                .addInformation(stack, mc.thePlayer, tooltip, advancedItemTooltips);
 
             if (stack.hasTagCompound() && stack.getTagCompound()
                 .hasKey("display", 10)) {
-                addItemColorAndLore(stack, tooltip, mc.gameSettings.advancedItemTooltips);
+                addItemColorAndLore(stack, tooltip, advancedItemTooltips);
             }
 
-            ForgeEventFactory.onItemTooltip(stack, mc.thePlayer, tooltip, mc.gameSettings.advancedItemTooltips);
+            ForgeEventFactory.onItemTooltip(stack, mc.thePlayer, tooltip, advancedItemTooltips);
         } catch (Exception e) {}
 
         if (!tooltip.isEmpty()) {

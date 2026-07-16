@@ -73,7 +73,7 @@ public class ModInfoEnricher implements ITooltipEnricher {
         }
 
         // only add mod name if the enricher is enabled.
-        if (EnricherConfig.modInfoEnabled) {
+        if (EnricherConfig.modInfo.isEnabled()) {
             components.line(TooltipUtils.translate("enricher.modinfo.modname", event.modName));
         }
 

@@ -48,7 +48,7 @@ public class StackSizeEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!EnricherConfig.stackAmountEnabled) {
+        if (!EnricherConfig.stackAmount.isEnabled()) {
             return null;
         }
 

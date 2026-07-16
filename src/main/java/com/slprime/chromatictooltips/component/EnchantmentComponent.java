@@ -34,12 +34,12 @@ public class EnchantmentComponent implements ITooltipComponent {
     }
 
     protected EnchantmentComponent(ResourceLocation resourceLocation, String title, List<String> hint) {
-        this.hint = EnricherConfig.enchantmentHintEnabled ? hint : Collections.emptyList();
+        this.hint = EnricherConfig.enchantmentHint.isEnabled() ? hint : Collections.emptyList();
         this.colorCodeIndex = TooltipUtils.getColorCodeIndex(title);
         this.resourceLocation = resourceLocation;
         this.title = title;
 
-        this.marginLeft = EnricherConfig.enchantmentIconsEnabled ? ICON_SIZE + SPACE : 0;
+        this.marginLeft = EnricherConfig.enchantmentIcons.isEnabled() ? ICON_SIZE + SPACE : 0;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class EnchantmentComponent implements ITooltipComponent {
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
         final int lineHeight = TooltipFontContext.getFontHeight();
 
-        if (EnricherConfig.enchantmentIconsEnabled) {
+        if (EnricherConfig.enchantmentIcons.isEnabled()) {
             drawIcon(x, y - 16f / 20f);
             x += this.marginLeft;
         }

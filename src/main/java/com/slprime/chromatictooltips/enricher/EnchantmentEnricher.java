@@ -119,7 +119,7 @@ public class EnchantmentEnricher implements ITooltipEnricher {
         final String icon = enchantmentIcons.getOrDefault(enchantmentData.enchantment.type, "star");
         final EnumChatFormatting color = enchantmentColors
             .getOrDefault(enchantmentData.enchantment.type, EnumChatFormatting.YELLOW);
-        final List<String> hint = EnricherConfig.enchantmentHintEnabled ? enchantmentData.hint
+        final List<String> hint = EnricherConfig.enchantmentHint.isEnabled() ? enchantmentData.hint
             : Collections.emptyList();
 
         return new EnchantmentComponent(

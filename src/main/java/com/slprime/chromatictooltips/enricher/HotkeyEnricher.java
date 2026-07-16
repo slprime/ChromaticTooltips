@@ -39,7 +39,7 @@ public class HotkeyEnricher implements ITooltipEnricher {
     @Override
     public TooltipLines build(TooltipContext context) {
 
-        if (!EnricherConfig.hotkeysEnabled) {
+        if (!EnricherConfig.hotkeys.isEnabled()) {
             return null;
         }
 

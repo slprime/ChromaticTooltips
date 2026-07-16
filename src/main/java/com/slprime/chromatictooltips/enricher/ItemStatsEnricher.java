@@ -59,7 +59,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
     }
 
     protected boolean shownIcons(TooltipContext context) {
-        return EnricherConfig.attributeModifierIconsEnabled && context.getRenderer()
+        return EnricherConfig.attributeModifierIcons.isEnabled() && context.getRenderer()
             .getEnricherModes(SECTION_ID + ":icons", EnumSet.of(TooltipModifier.NONE))
             .contains(context.getActiveModifier());
     }
@@ -68,7 +68,7 @@ public class ItemStatsEnricher implements ITooltipEnricher {
     public TooltipLines build(TooltipContext context) {
 
         if (!context.getTarget()
-            .isItem() || this.showOnlyIcons && !EnricherConfig.attributeModifierIconsEnabled) {
+            .isItem() || this.showOnlyIcons && !EnricherConfig.attributeModifierIcons.isEnabled()) {
             return null;
         }
 
@@ -128,19 +128,19 @@ public class ItemStatsEnricher implements ITooltipEnricher {
 
         addUnbreakableAttribute(stack, stats);
 
-        if (EnricherConfig.durabilityEnabled) {
+        if (EnricherConfig.durability.isEnabled()) {
             addDurabilityAttribute(stack, stats);
         }
 
-        if (EnricherConfig.burnTimeEnabled) {
+        if (EnricherConfig.burnTime.isEnabled()) {
             addBurnTimeAttribute(stack, stats);
         }
 
-        if (EnricherConfig.foodStatsEnabled) {
+        if (EnricherConfig.foodStats.isEnabled()) {
             addFoodStats(target, stats);
         }
 
-        if (EnricherConfig.foodEffectsEnabled) {
+        if (EnricherConfig.foodEffects.isEnabled()) {
             addFoodEffects(target, stats);
         }
 

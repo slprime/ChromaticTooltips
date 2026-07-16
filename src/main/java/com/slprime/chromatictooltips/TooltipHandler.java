@@ -177,7 +177,7 @@ public class TooltipHandler {
             context = new TooltipContext(request, getRendererFor(request));
         }
 
-        if (EnricherConfig.keyboardModifiersEnabled) {
+        if (EnricherConfig.keyboardModifiers.isEnabled()) {
             updateSupportedModifiers(context);
         }
 

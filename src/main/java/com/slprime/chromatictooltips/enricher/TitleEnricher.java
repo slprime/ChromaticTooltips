@@ -18,6 +18,7 @@ import com.slprime.chromatictooltips.api.TooltipLines;
 import com.slprime.chromatictooltips.api.TooltipModifier;
 import com.slprime.chromatictooltips.api.TooltipTarget;
 import com.slprime.chromatictooltips.component.TextComponent;
+import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.TitleEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 import com.slprime.chromatictooltips.util.TooltipUtils;
@@ -162,7 +163,7 @@ public class TitleEnricher implements ITooltipEnricher {
 
     private String getAdvancedInfo(ItemStack stack) {
 
-        if (TooltipUtils.mc().gameSettings.advancedItemTooltips) {
+        if (EnricherConfig.itemId.isEnabled()) {
             final int itemId = Item.getIdFromItem(stack.getItem());
 
             if (stack.getHasSubtypes()) {
@@ -180,7 +181,7 @@ public class TitleEnricher implements ITooltipEnricher {
 
     private String getAdvancedInfo(FluidStack fluidStack) {
 
-        if (TooltipUtils.mc().gameSettings.advancedItemTooltips) {
+        if (EnricherConfig.itemId.isEnabled()) {
             final int fluidId = GameData.getBlockRegistry()
                 .getId(
                     fluidStack.getFluid()
@@ -192,6 +193,7 @@ public class TitleEnricher implements ITooltipEnricher {
 
             return String.format(" #%04d", Integer.valueOf(fluidId));
         }
+
         return "";
     }
 
