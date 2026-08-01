@@ -105,7 +105,7 @@ public class TooltipRenderUtils {
         final TextureManager renderEngine = TooltipUtils.mc()
             .getTextureManager();
 
-        drawIromIcon(() -> {
+        drawIcon(() -> {
             itemRender.zLevel += 100.0F;
             itemRender.renderItemAndEffectIntoGUI(font, renderEngine, stack, 0, 0);
 
@@ -126,7 +126,7 @@ public class TooltipRenderUtils {
             return;
         }
 
-        drawIromIcon(() -> {
+        drawIcon(() -> {
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glEnable(GL11.GL_ALPHA_TEST);
             TooltipUtils.bindTexture(TextureMap.locationBlocksTexture);
@@ -146,7 +146,7 @@ public class TooltipRenderUtils {
 
     }
 
-    protected static void drawIromIcon(Runnable drawIcon, long stackAmount, boolean fluid) {
+    protected static void drawIcon(Runnable drawIcon, long stackAmount, boolean fluid) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         RenderHelper.enableGUIStandardItemLighting();
 
