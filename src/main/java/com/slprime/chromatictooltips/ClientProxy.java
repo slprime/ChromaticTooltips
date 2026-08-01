@@ -9,6 +9,7 @@ import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import org.lwjgl.input.Keyboard;
 
 import com.slprime.chromatictooltips.converter.DividerConverter;
+import com.slprime.chromatictooltips.converter.DividerTextConverter;
 import com.slprime.chromatictooltips.converter.ModifierConverter;
 import com.slprime.chromatictooltips.enricher.ContextInfoEnricher;
 import com.slprime.chromatictooltips.enricher.EnchantmentEnricher;
@@ -73,6 +74,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
         TooltipHandler.setRendererClass(TooltipRenderer.class);
 
         TooltipRegistry.addLineConverter(ModifierConverter.PATTERN, new ModifierConverter());
+        TooltipRegistry.addLineConverter(DividerTextConverter.PATTERN, new DividerTextConverter());
         TooltipRegistry.addLineConverter(DividerConverter.PATTERN, new DividerConverter());
     }
 

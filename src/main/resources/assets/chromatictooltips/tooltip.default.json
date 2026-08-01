@@ -34,6 +34,28 @@
             "height": 10
         },
 
+        "dividerText": {
+            "left": {
+                "decorator": {
+                    "type": "background",
+                    "color": "0xFFFFFFFF",
+                    "alignBlock": "center",
+                    "marginRight": 4,
+                    "height": 1
+                }
+            },
+            "right": {
+                "decorator": {
+                    "type": "background",
+                    "color": "0xFFFFFFFF",
+                    "alignBlock": "center",
+                    "marginLeft": 4,
+                    "height": 1
+                }
+            },
+            "height": 10
+        },
+
         "sectionSpacing": 4,
 
         "navigation": {
