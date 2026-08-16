@@ -147,6 +147,8 @@ public class TooltipRenderUtils {
     }
 
     protected static void drawIcon(Runnable drawIcon, long stackAmount, boolean fluid) {
+        final boolean depthTestWasEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_LIGHTING_BIT);
         RenderHelper.enableGUIStandardItemLighting();
 
@@ -165,6 +167,12 @@ public class TooltipRenderUtils {
         }
 
         GL11.glPopAttrib();
+
+        if (depthTestWasEnabled) {
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+        } else {
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+        }
     }
 
     protected static void drawStackSize(long stackAmount, boolean isFluid) {
