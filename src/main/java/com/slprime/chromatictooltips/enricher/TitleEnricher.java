@@ -7,6 +7,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.slprime.chromatictooltips.ChromaticTooltips;
@@ -22,8 +23,6 @@ import com.slprime.chromatictooltips.config.EnricherConfig;
 import com.slprime.chromatictooltips.event.TitleEnricherEvent;
 import com.slprime.chromatictooltips.util.TooltipFontContext;
 import com.slprime.chromatictooltips.util.TooltipUtils;
-
-import cpw.mods.fml.common.registry.GameData;
 
 public class TitleEnricher implements ITooltipEnricher {
 
@@ -182,12 +181,9 @@ public class TitleEnricher implements ITooltipEnricher {
     private String getAdvancedInfo(FluidStack fluidStack) {
 
         if (EnricherConfig.itemId.isEnabled()) {
-            final int fluidId = GameData.getBlockRegistry()
-                .getId(
-                    fluidStack.getFluid()
-                        .getBlock());
+            final int fluidId = FluidRegistry.getFluidID(fluidStack.getFluid());
 
-            if (fluidId == -1) {
+            if (fluidId == 0) {
                 return "";
             }
 
