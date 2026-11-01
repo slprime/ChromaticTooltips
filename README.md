@@ -418,7 +418,7 @@ generates:
 ```json
 {
   "path": "<string>",           // path to texture
-  "color": "<int | color>",     // color (ARGB), e.g. 0xFFFFFFFF
+  "color": "<int | color>",     // tint (ARGB or color expression), multiplied with texture pixels, e.g. 0xFFFFFFFF
   "region": {
     "x": "<int>",
     "y": "<int>",
@@ -707,6 +707,64 @@ If the last keyframe doesn't have `progress: 100`, it's automatically added:
   }
 }
 ```
+
+### 5.6 Color expressions
+
+Wherever a color is accepted (`color` of decorators, `font.colors`), an expression can be used instead of `0xAARRGGBB`. It is evaluated every frame from the base colors of the hovered item or fluid, so animated items change the tooltip colors too.
+
+```json
+"color": "hsv(from var(--primary) calc(h - 20) min(0.8, s) 0.2 / 0.9)"
+```
+
+| Part | Meaning |
+|------|---------|
+| `0xAARRGGBB`, `var(--primary)`, `var(--secondary)`, `hsv(...)` | a color |
+| `hsv(from <color> h s v [/ alpha])` | new color from the channels of `<color>`; alpha defaults to the alpha of `<color>`; `from` can be omitted for absolute values |
+| `h`, `s`, `v` | channels of the `from` color: hue in degrees (0–360), saturation and value in 0–1 |
+| `var(--neutral)` | 1 for gray items (steel, obsidian), 0 for colorful ones, in between while the color eases |
+| `var(--time)` | seconds since the tooltip appeared, for animation |
+| `calc(...)`, `min(...)`, `max(...)`, `sin(...)` | `+ - * /`, parentheses and nested calls; `sin` takes radians |
+
+`--primary` and `--secondary` are the two dominant colors of the item, already adjusted to be vivid; for gray items they are cool gray tones. Results are clamped, a hue wraps around. An invalid expression is logged once with its path and replaced by transparent (in `font.colors` the color is left unchanged).
+
+```json
+"decorators": [
+  { "type": "background", "corner": false, "color": [
+      "hsv(from var(--primary)   h min(0.84, s) calc(0.23 - 0.05 * var(--neutral)) / 0.94)",
+      "hsv(from var(--secondary) h min(0.80, s) calc(0.16 - 0.03 * var(--neutral)) / 0.94)",
+      "hsv(from var(--primary)   calc(h - 19.8) min(0.74, calc(s * 0.85)) calc(0.07 - 0.02 * var(--neutral)) / 0.96)",
+      "hsv(from var(--secondary) h min(0.78, s) calc(0.15 - 0.03 * var(--neutral)) / 0.94)"
+  ]},
+  { "type": "border", "margin": 1, "color": [
+      "hsv(from var(--primary)   h s max(calc(0.92 - 0.17 * var(--neutral)), v))",
+      "hsv(from var(--secondary) h s v)",
+      "hsv(from var(--primary)   calc(h - 19.8) min(0.92, s) calc(0.38 - 0.18 * var(--neutral)))",
+      "hsv(from var(--secondary) h s calc(0.60 - 0.20 * var(--neutral)))"
+  ]}
+]
+```
+
+#### Animated colors
+
+Expressions are evaluated every frame, so `var(--time)` animates any color. A hue that follows time makes a rainbow (40 degrees per second is one turn in 9 seconds), a `sin` makes a pulse:
+
+```json
+"color": "hsv(from var(--primary) calc(h + var(--time) * 40) s v)"
+"color": "hsv(from var(--primary) h s calc(0.6 + 0.2 * sin(var(--time) * 2)))"
+```
+
+A `border` decorator with more than 4 colors spreads them evenly along the perimeter, clockwise from the top-left corner, blending between neighbours. Give every stop its own phase to make colors run around the frame (here 12 stops, the pattern moves clockwise):
+
+```json
+{ "type": "border", "color": [
+    "hsv(calc(0   - var(--time) * 40) 0.8 0.95)",
+    "hsv(calc(30  - var(--time) * 40) 0.8 0.95)",
+    "hsv(calc(60  - var(--time) * 40) 0.8 0.95)",
+    "... up to 330 ..."
+]}
+```
+
+`gradient-horizontal` and `gradient-vertical` already take any number of stops, so a highlight can also sweep across the tooltip or a divider: `calc(0.4 + 0.5 * max(0, sin(var(--time) * 3 - 0.8 * i)))` where `i` is not a variable but a number you write into each stop yourself (`0`, `1`, `2`, ...).
 
 ## 6. Alignment and dimensions
 

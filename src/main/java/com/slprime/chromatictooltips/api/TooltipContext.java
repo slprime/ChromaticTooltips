@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Supplier;
 
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.item.ItemStack;
@@ -14,10 +15,17 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.slprime.chromatictooltips.component.SectionComponent;
 import com.slprime.chromatictooltips.util.TooltipUtils;
+import com.slprime.chromatictooltips.util.color.ItemColorExtractor;
+import com.slprime.chromatictooltips.util.color.PaletteSmoother;
+import com.slprime.chromatictooltips.util.color.TooltipPalette;
 
 public class TooltipContext {
 
     protected TooltipTarget target;
+    protected TooltipPalette palette = TooltipPalette.DEFAULT;
+    protected Supplier<TooltipPalette> paletteSource = null;
+    protected boolean paletteStale = false;
+    protected PaletteSmoother paletteSmoother = new PaletteSmoother();
 
     protected long animationStartTime;
     protected final String context;
@@ -49,6 +57,10 @@ public class TooltipContext {
         this(request, previousContext.renderer);
         this.animationStartTime = previousContext.animationStartTime;
         this.currentPage = previousContext.currentPage;
+        this.palette = previousContext.palette;
+
+        this.paletteSource = previousContext.paletteSource;
+        this.paletteSmoother = previousContext.paletteSmoother;
     }
 
     public String getContextName() {
@@ -89,6 +101,29 @@ public class TooltipContext {
 
     public TooltipTarget getTarget() {
         return this.target;
+    }
+
+    public TooltipPalette getPalette() {
+
+        if (this.paletteStale) {
+            this.paletteStale = false;
+
+            if (this.paletteSource == null) {
+                this.paletteSource = ItemColorExtractor.getSource(this.target);
+            }
+
+            final TooltipPalette current = this.paletteSource != null ? this.paletteSource.get()
+                : TooltipPalette.DEFAULT;
+
+            this.palette = this.paletteSmoother.smooth(ItemColorExtractor.getSmoothKey(this.target), current)
+                .withTime((System.currentTimeMillis() - this.animationStartTime) / 1000f);
+        }
+
+        return this.palette;
+    }
+
+    public void updatePalette() {
+        this.paletteStale = true;
     }
 
     public void supportModifiers(TooltipModifier... modifiers) {

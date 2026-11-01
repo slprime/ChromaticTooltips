@@ -25,6 +25,7 @@ import com.slprime.chromatictooltips.enricher.TitleEnricher;
 import com.slprime.chromatictooltips.handlers.FoodEffectsHandler;
 import com.slprime.chromatictooltips.handlers.FoodStatsHandler;
 import com.slprime.chromatictooltips.util.TooltipUtils;
+import com.slprime.chromatictooltips.util.color.ItemColorExtractor;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -114,6 +115,7 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
 
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager) {
+        ItemColorExtractor.clearCache();
         TooltipUtils.reloadBlacklistPatterns();
         TooltipHandler.reload();
     }

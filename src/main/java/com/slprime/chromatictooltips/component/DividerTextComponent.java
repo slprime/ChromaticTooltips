@@ -23,8 +23,6 @@ public class DividerTextComponent extends SpaceComponent {
 
     @Override
     public ITooltipComponent[] paginate(TooltipContext context, int maxWidth, int maxHeight) {
-        this.mixColor = (0xFF << 24) | TooltipFontContext.getColor(this.colorCodeIndex);
-        this.right.mixColor = this.mixColor;
         return new ITooltipComponent[] { this };
     }
 
@@ -58,6 +56,8 @@ public class DividerTextComponent extends SpaceComponent {
 
     @Override
     public void draw(int x, int y, int availableWidth, TooltipContext context) {
+        this.mixColor = (0xFF << 24) | TooltipFontContext.getColor(this.colorCodeIndex);
+        this.right.mixColor = this.mixColor;
         x += this.marginLeft;
         availableWidth -= this.marginLeft;
 

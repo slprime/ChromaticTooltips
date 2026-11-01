@@ -7,7 +7,10 @@ import net.minecraft.client.gui.FontRenderer;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipStyle;
+import com.slprime.chromatictooltips.util.color.ColorValue;
+import com.slprime.chromatictooltips.util.color.TooltipPalette;
 
 public class TooltipFontContext {
 
@@ -18,14 +21,14 @@ public class TooltipFontContext {
         public boolean shadow = true;
         public int paragraph = 6;
 
-        public Context(FontRenderer fontRenderer, int[] colors, boolean shadow, int paragraph) {
+        public Context(FontRenderer fontRenderer, int[] colors, boolean[] overridden, boolean shadow, int paragraph) {
             this.fontRenderer = fontRenderer;
             this.colors = Arrays.copyOf(fontRenderer.colorCode, 32);
             this.shadow = shadow;
             this.paragraph = paragraph;
 
             for (int i = 0; i < colors.length; i++) {
-                if (colors[i] != INHERIT_COLOR) {
+                if (overridden[i]) {
                     this.colors[i] = colors[i];
                 }
             }
@@ -40,7 +43,6 @@ public class TooltipFontContext {
     public static final int LINE_SPACE = 1;
     public static final int DEFAULT_SPACING = 2;
 
-    protected static final int INHERIT_COLOR = 0x00000000;
     protected static final String[] colorOrders = new String[] { "black", "dark_blue", "dark_green", "dark_aqua",
         "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple",
         "yellow", "white" };
@@ -50,6 +52,9 @@ public class TooltipFontContext {
 
     protected FontRenderer fontRenderer = null;
     protected int[] customColors = new int[32];
+    protected boolean[] overridden = new boolean[32];
+    protected ColorValue[] colorValues = new ColorValue[32];
+    protected boolean dynamicColors = false;
     protected Boolean shadow = null;
     protected Integer paragraph = null;
 
@@ -75,8 +80,6 @@ public class TooltipFontContext {
 
         this.fontRenderer = fontRenderer;
 
-        Arrays.fill(this.customColors, INHERIT_COLOR);
-
         for (int i = 0; i < colorOrders.length; i++) {
             final String key = colorOrders[i];
 
@@ -84,45 +87,68 @@ public class TooltipFontContext {
                 final JsonElement element = colorStyle.get(key);
 
                 if (element.isJsonArray()) {
-                    final int[] colors = colorStyle.getAsColors(key, new int[] { INHERIT_COLOR });
-                    final int color = colors[0] & 0x00FFFFFF;
+                    final ColorValue[] colors = colorStyle.getAsColorValues(key, null, new ColorValue[0]);
 
-                    this.customColors[i] = color;
-
-                    if (colors.length == 1) {
-                        this.customColors[i + 16] = (color & 16579836) >> 2 | color & -16777216;
-                    } else {
-                        this.customColors[i + 16] = colors[1] & 0x00FFFFFF;
+                    if (colors.length > 0) {
+                        this.colorValues[i] = colors[0];
+                        this.colorValues[i + 16] = colors.length == 1 ? shadowOf(colors[0]) : colors[1];
                     }
-
                 } else if (element.isJsonPrimitive()) {
-                    final int color = colorStyle.getAsColor(key, INHERIT_COLOR) & 0x00FFFFFF;
+                    final ColorValue color = colorStyle.getAsColorValue(key, (ColorValue) null);
 
-                    this.customColors[i] = color;
-                    this.customColors[i + 16] = (color & 16579836) >> 2 | color & -16777216;
+                    this.colorValues[i] = color;
+                    this.colorValues[i + 16] = shadowOf(color);
                 }
 
             }
 
         }
 
+        for (int i = 0; i < this.colorValues.length; i++) {
+            this.overridden[i] = this.colorValues[i] != null;
+            this.dynamicColors |= this.overridden[i] && this.colorValues[i].isDynamic();
+        }
+
+    }
+
+    protected static ColorValue shadowOf(ColorValue color) {
+        return ColorValue.map(color, argb -> ((argb & 0x00FFFFFF) & 16579836) >> 2);
     }
 
     protected static Context context() {
 
         if (TooltipFontContext.activeContext == null) {
-            TooltipFontContext.activeContext = new Context(TooltipUtils.mc().fontRenderer, new int[0], true, 6);
+            TooltipFontContext.activeContext = new Context(
+                TooltipUtils.mc().fontRenderer,
+                new int[0],
+                new boolean[0],
+                true,
+                6);
         }
 
         return TooltipFontContext.activeContext;
     }
 
     public void pushContext() {
+        pushContext(null);
+    }
+
+    public void pushContext(TooltipContext tooltipContext) {
+        final TooltipPalette palette = tooltipContext != null && this.dynamicColors ? tooltipContext.getPalette()
+            : TooltipPalette.DEFAULT;
+
+        for (int i = 0; i < this.colorValues.length; i++) {
+            if (this.overridden[i]) {
+                this.customColors[i] = this.colorValues[i].resolve(palette) & 0x00FFFFFF;
+            }
+        }
+
         this.previousContext = context();
 
         TooltipFontContext.activeContext = new Context(
             this.fontRenderer == null ? TooltipFontContext.activeContext.fontRenderer : this.fontRenderer,
             this.customColors,
+            this.overridden,
             this.shadow == null ? TooltipFontContext.activeContext.shadow : this.shadow,
             this.paragraph == null ? TooltipFontContext.activeContext.paragraph : this.paragraph);
 

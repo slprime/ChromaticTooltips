@@ -7,9 +7,12 @@ import java.util.function.Function;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.slprime.chromatictooltips.ChromaticTooltips;
 import com.slprime.chromatictooltips.util.TooltipDecorator;
 import com.slprime.chromatictooltips.util.TooltipDecoratorCollection;
 import com.slprime.chromatictooltips.util.TooltipSpacing;
+import com.slprime.chromatictooltips.util.color.ColorExpression;
+import com.slprime.chromatictooltips.util.color.ColorValue;
 
 public class TooltipStyle {
 
@@ -130,6 +133,35 @@ public class TooltipStyle {
         return defaultValue;
     }
 
+    public ColorValue getAsColorValue(String path, int defaultValue) {
+        return getAsColorValue(path, ColorValue.constant(defaultValue));
+    }
+
+    public ColorValue getAsColorValue(String path, ColorValue fallback) {
+        return parseColorValue(path, get(path), fallback);
+    }
+
+    public ColorValue[] getAsColorValues(String path, int[] defaultValue) {
+        return getAsColorValues(path, ColorValue.constant(0), ColorValue.constants(defaultValue));
+    }
+
+    public ColorValue[] getAsColorValues(String path, ColorValue elementFallback, ColorValue[] defaultValue) {
+        final JsonElement element = get(path);
+
+        if (element != null && element.isJsonArray()) {
+            final JsonArray array = element.getAsJsonArray();
+            final ColorValue[] values = new ColorValue[array.size()];
+
+            for (int i = 0; i < array.size(); i++) {
+                values[i] = parseColorValue(path + "[" + i + "]", array.get(i), elementFallback);
+            }
+
+            return values;
+        }
+
+        return defaultValue;
+    }
+
     public TooltipDecoratorCollection getDecoratorCollection() {
 
         if (containsKey("decorators")) {
@@ -202,6 +234,27 @@ public class TooltipStyle {
         }
 
         return result;
+    }
+
+    private static ColorValue parseColorValue(String path, JsonElement element, ColorValue fallback) {
+
+        if (element == null) {
+            return fallback;
+        }
+
+        try {
+            final String str = element.getAsString()
+                .trim();
+
+            if (str.startsWith("hsv(") || str.startsWith("var(")) {
+                return ColorExpression.parse(str);
+            }
+
+            return ColorValue.constant(parseInt(element));
+        } catch (Exception e) {
+            ChromaticTooltips.LOG.warn("Invalid color at '{}': {}", path, e.getMessage());
+            return fallback;
+        }
     }
 
     private static int parseInt(JsonElement element) {

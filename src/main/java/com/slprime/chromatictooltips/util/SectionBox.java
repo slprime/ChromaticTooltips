@@ -143,7 +143,7 @@ public class SectionBox implements ITooltipComponent {
             height = this.contentSize.height;
         }
 
-        this.fontContext.pushContext();
+        this.fontContext.pushContext(context);
         drawContent(x, y, width, height, context);
         this.fontContext.popContext();
 

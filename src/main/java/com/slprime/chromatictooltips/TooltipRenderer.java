@@ -280,6 +280,7 @@ public class TooltipRenderer implements ITooltipRenderer {
                 (int) (width * scaleShift),
                 (int) (height * scaleShift));
 
+            context.updatePalette();
             drawContent(context, section, scaleShift, x, y);
             TooltipUtils.postEvent(new RenderTooltipEvent(context, section, tooltipRectangle));
         }

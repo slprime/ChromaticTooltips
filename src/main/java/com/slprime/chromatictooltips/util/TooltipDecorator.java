@@ -8,6 +8,9 @@ import org.lwjgl.opengl.GL11;
 
 import com.slprime.chromatictooltips.api.TooltipContext;
 import com.slprime.chromatictooltips.api.TooltipStyle;
+import com.slprime.chromatictooltips.util.color.ColorValue;
+import com.slprime.chromatictooltips.util.color.PerimeterGradient;
+import com.slprime.chromatictooltips.util.color.TooltipPalette;
 
 public class TooltipDecorator {
 
@@ -48,7 +51,9 @@ public class TooltipDecorator {
     protected TooltipTransform transform = null;
 
     protected DecoratorType decoratorType = DecoratorType.NONE;
+    protected ColorValue[] colorValues = null;
     protected int[] colors = null;
+    protected boolean dynamicColors = false;
     protected int thickness = 1;
     protected boolean corner = true;
 
@@ -72,13 +77,17 @@ public class TooltipDecorator {
 
         if (this.decoratorType == DecoratorType.TEXTURE && style.containsKey("path")) {
             this.texture = new TooltipTexture(style);
+
+            if (style.containsKey("color")) {
+                this.colorValues = new ColorValue[] { style.getAsColorValue("color", WHITE) };
+            }
         } else if (this.decoratorType == DecoratorType.BACKGROUND || this.decoratorType == DecoratorType.BORDER) {
 
             if (style.get("color") != null && style.get("color")
                 .isJsonArray()) {
-                this.colors = prepare4Colors(style.getAsColors("color", new int[] { TRANSPARENT }));
+                this.colorValues = prepare4Colors(style.getAsColorValues("color", new int[] { TRANSPARENT }));
             } else {
-                this.colors = prepare4Colors(new int[] { style.getAsColor("color", TRANSPARENT) });
+                this.colorValues = prepare4Colors(new ColorValue[] { style.getAsColorValue("color", TRANSPARENT) });
             }
 
             this.thickness = style.getAsInt("thickness", 1);
@@ -87,20 +96,26 @@ public class TooltipDecorator {
 
             if (style.get("color") != null && style.get("color")
                 .isJsonArray()) {
-                this.colors = style.getAsColors("color", new int[] { TRANSPARENT });
+                this.colorValues = style.getAsColorValues("color", new int[] { TRANSPARENT });
             } else {
-                final int colorInt = style.getAsColor("color", TRANSPARENT);
-                final int color60Int = (colorInt & 0x00FFFFFF) | ((colorInt >> 24 & 0xFF) * 96 / 255 << 24);
-                this.colors = new int[] { TRANSPARENT, color60Int, colorInt, color60Int, TRANSPARENT };
+                final ColorValue color = style.getAsColorValue("color", TRANSPARENT);
+                final ColorValue color60 = ColorValue
+                    .map(color, colorInt -> (colorInt & 0x00FFFFFF) | ((colorInt >> 24 & 0xFF) * 96 / 255 << 24));
+                this.colorValues = new ColorValue[] { ColorValue.constant(TRANSPARENT), color60, color, color60,
+                    ColorValue.constant(TRANSPARENT) };
             }
 
         } else {
-            this.colors = new int[] {};
+            this.colorValues = new ColorValue[] {};
         }
 
         if (this.decoratorType != DecoratorType.TEXTURE && this.decoratorType != DecoratorType.ITEM
-            && this.colors.length == 0) {
+            && this.colorValues.length == 0) {
             this.decoratorType = DecoratorType.NONE;
+        }
+
+        for (ColorValue value : this.colorValues == null ? new ColorValue[0] : this.colorValues) {
+            this.dynamicColors |= value.isDynamic();
         }
 
         if (this.decoratorType != DecoratorType.NONE && style.containsKey("transform")) {
@@ -109,15 +124,28 @@ public class TooltipDecorator {
 
     }
 
-    protected int[] prepare4Colors(int[] colors) {
+    protected ColorValue[] prepare4Colors(ColorValue[] colors) {
         if (colors.length == 1) {
-            return new int[] { colors[0], colors[0], colors[0], colors[0] };
+            return new ColorValue[] { colors[0], colors[0], colors[0], colors[0] };
         } else if (colors.length == 2) {
-            return new int[] { colors[0], colors[0], colors[1], colors[1] };
+            return new ColorValue[] { colors[0], colors[0], colors[1], colors[1] };
         } else if (colors.length == 3) {
-            return new int[] { colors[0], colors[1], colors[2], colors[0] };
+            return new ColorValue[] { colors[0], colors[1], colors[2], colors[0] };
         } else {
             return colors;
+        }
+    }
+
+    protected void resolveColors(TooltipContext context) {
+        final TooltipPalette palette = context != null && this.dynamicColors ? context.getPalette()
+            : TooltipPalette.DEFAULT;
+
+        if (this.colors == null || this.colors.length != this.colorValues.length) {
+            this.colors = new int[this.colorValues.length];
+        }
+
+        for (int i = 0; i < this.colors.length; i++) {
+            this.colors[i] = this.colorValues[i].resolve(palette);
         }
     }
 
@@ -157,7 +185,14 @@ public class TooltipDecorator {
         }
 
         if (this.texture != null) {
-            this.texture.draw(x, y, width, height, this.alignInline, this.alignBlock, mixColor);
+            int tint = mixColor;
+
+            if (this.colorValues != null) {
+                resolveColors(context);
+                tint = blend(this.colors[0], mixColor);
+            }
+
+            this.texture.draw(x, y, width, height, this.alignInline, this.alignBlock, tint);
         } else if (this.decoratorType == DecoratorType.ITEM) {
             final ItemStack stack = context.getItem();
             final FluidStack fluid = context.getFluid();
@@ -169,6 +204,7 @@ public class TooltipDecorator {
             }
 
         } else if (this.decoratorType != DecoratorType.NONE) {
+            resolveColors(context);
             drawGradient(x, y, width, height, mixColor);
         }
 
@@ -246,7 +282,13 @@ public class TooltipDecorator {
             }
 
         } else if (this.decoratorType == DecoratorType.BORDER) {
-            drawBorder(x, y, width, height, this.corner ? 0 : this.thickness, mixColor);
+            final int offset = this.corner ? 0 : this.thickness;
+
+            if (this.colors.length > 4) {
+                drawPerimeterBorder(x, y, width, height, offset, mixColor);
+            } else {
+                drawBorder(x, y, width, height, offset, mixColor);
+            }
         }
 
         GL11.glShadeModel(GL11.GL_FLAT);
@@ -299,6 +341,94 @@ public class TooltipDecorator {
             colors[2],
             colors[1],
             colors[2]);
+    }
+
+    protected void drawPerimeterBorder(double x, double y, double width, double height, int offset, int mixColor) {
+        final double horizontal = width - 2 * offset;
+        final double vertical = height - 2 * this.thickness;
+
+        if (horizontal <= 0 || vertical <= 0) {
+            return;
+        }
+
+        final int[] stops = new int[this.colors.length];
+
+        for (int i = 0; i < stops.length; i++) {
+            stops[i] = blend(this.colors[i], mixColor);
+        }
+
+        final PerimeterGradient gradient = new PerimeterGradient(stops);
+        final double perimeter = 2 * (horizontal + vertical);
+        final double spacing = perimeter / stops.length;
+        double start = 0;
+
+        for (int edge = 0; edge < 4; edge++) {
+            final double end = start + (edge % 2 == 0 ? horizontal : vertical);
+            double from = start;
+
+            while (from < end - 1e-6) {
+                final double to = Math.min(end, (Math.floor(from / spacing + 1e-9) + 1) * spacing);
+
+                drawPerimeterSegment(
+                    edge,
+                    x,
+                    y,
+                    width,
+                    height,
+                    offset,
+                    from - start,
+                    to - start,
+                    gradient.colorAt(from / perimeter),
+                    gradient.colorAt(to / perimeter));
+                from = to;
+            }
+
+            start = end;
+        }
+    }
+
+    protected void drawPerimeterSegment(int edge, double x, double y, double width, double height, int offset,
+        double from, double to, int fromColor, int toColor) {
+        final double t = this.thickness;
+
+        switch (edge) {
+            case 0:
+                drawGradientRect(x + offset + from, y, x + offset + to, y + t, fromColor, fromColor, toColor, toColor);
+                break;
+            case 1:
+                drawGradientRect(
+                    x + width - t,
+                    y + t + from,
+                    x + width,
+                    y + t + to,
+                    fromColor,
+                    toColor,
+                    fromColor,
+                    toColor);
+                break;
+            case 2:
+                drawGradientRect(
+                    x + width - offset - to,
+                    y + height - t,
+                    x + width - offset - from,
+                    y + height,
+                    toColor,
+                    toColor,
+                    fromColor,
+                    fromColor);
+                break;
+            default:
+                drawGradientRect(
+                    x,
+                    y + height - t - to,
+                    x + t,
+                    y + height - t - from,
+                    toColor,
+                    fromColor,
+                    toColor,
+                    fromColor);
+                break;
+        }
     }
 
     protected void drawGradientRect(double left, double top, double right, double bottom, int lt, int lb, int rt,

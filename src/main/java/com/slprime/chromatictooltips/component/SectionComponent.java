@@ -96,7 +96,7 @@ public class SectionComponent extends SectionBox {
         maxHeight = Math.max(0, maxHeight - getBlock());
         maxWidth = Math.max(0, maxWidth - getInline());
 
-        this.fontContext.pushContext();
+        this.fontContext.pushContext(context);
 
         if (this.sectionSpacing >= 0) {
             SectionComponent.parentSectionSpacing = this.sectionSpacing;
